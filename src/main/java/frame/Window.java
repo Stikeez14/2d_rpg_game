@@ -16,6 +16,8 @@ public class Window {
         mainFrame.setContentPane(gamePanel);
         mainFrame.pack(); //adjust the frame size based on the game_panel
 
+        gamePanel.startThread();
+
         mainFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainFrame.setLocationRelativeTo(null); //center the frame on the screen
         mainFrame.setResizable(false);
