@@ -15,13 +15,12 @@ public class Panel extends JPanel implements Runnable {
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
 
-        this.setFocusable(true);
-        this.requestFocusInWindow();
-
         player = new Player(400, 300, this);
     }
 
     public void startThread() {
+        this.setFocusable(true);
+        this.requestFocusInWindow(); //request focus when game starts
         gameThread = new Thread(this);
         gameThread.start();
     }
@@ -44,7 +43,7 @@ public class Panel extends JPanel implements Runnable {
             lastTime = currentTime;
             //rendering the next frame
             if (delta >= 1) {
-                player.setPlayer();
+                update();
                 repaint();
                 delta --;
                 drawCount++;
@@ -58,12 +57,16 @@ public class Panel extends JPanel implements Runnable {
         }
     }
 
+    public void update() {
+        player.setPlayer();
+    }
+
     public void paintComponent (Graphics g) {
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D)g;
         player.draw(g2);
 
-        //g2.dispose();
+        g2.dispose();
     }
 }
