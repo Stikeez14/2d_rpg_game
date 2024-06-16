@@ -1,27 +1,24 @@
 package frame;
 
-import inputs.keyHandler;
-
+import entities.Player;
 import javax.swing.*;
 import java.awt.*;
 
 public class Panel extends JPanel implements Runnable {
 
-    keyHandler key = new keyHandler();
+    Player player;
     Thread gameThread; //thread for the game loop
-
-    //temporary coordinates and speed for cube representing the player
-    int px = 100;
-    int py= 100;
-    int pSpeed = 3;
 
     private static final int FPS = 120;
 
     public Panel() {
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
-        this.addKeyListener(key);
-        this.setFocusable(true); //helps with receiving key events
+
+        this.setFocusable(true);
+        this.requestFocusInWindow();
+
+        player = new Player(400, 300, this);
     }
 
     public void startThread() {
@@ -47,33 +44,26 @@ public class Panel extends JPanel implements Runnable {
             lastTime = currentTime;
             //rendering the next frame
             if (delta >= 1) {
-                update();
+                player.setPlayer();
                 repaint();
                 delta --;
                 drawCount++;
             }
             //printing FPS and resetting counters
-            if(timer >= 1000000000) {
-                System.out.println("FPS: " + drawCount);
+            if(timer >= 500000000) {
+                System.out.println("FPS: " + drawCount * 2);
                 drawCount=0;
                 timer=0;
             }
         }
     }
 
-    public void update() {
-        if(key.upPressed) py -= pSpeed;
-        else if(key.downPressed) py += pSpeed;
-        else if (key.leftPressed) px -= pSpeed;
-        else if (key.rightPressed) px += pSpeed;
-    }
-
     public void paintComponent (Graphics g) {
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(Color.WHITE);
-        g2.fillRect(px,py, 64, 64);
-        g2.dispose();
+        player.draw(g2);
+
+        //g2.dispose();
     }
 }
