@@ -29,6 +29,10 @@ public class Player {
 
     Rectangle hitbox;
 
+    private boolean isSprinting = false;
+    private long sprintStartTime = 0;
+    private long lastSprintTime = 0;
+
     public Player(int x, int y, Panel gamePanel) {
         this.x = x;
         this.y = y;
@@ -45,8 +49,31 @@ public class Player {
     }
 
     public void setPlayer() {
-        int walkSpeed = 2, runSpeed = 4;
-        int Speed = key.shiftPressed ? runSpeed : walkSpeed;
+        int runSpeed = 4;
+        int Speed = 2;
+
+        if (isSprinting) { //checking if the player is allowed to sprint
+
+            long currentTime = System.currentTimeMillis();
+            long sprintDuration = 3000; //5 sec
+
+            if (currentTime - sprintStartTime < sprintDuration) {
+                Speed = runSpeed;
+            } else {
+                isSprinting = false;
+                lastSprintTime = currentTime; // get the time when the sprint ended
+            }
+        } else {
+            long currentTime = System.currentTimeMillis();
+            long sprintCooldown = 15000; //15 sec
+
+            if (currentTime - lastSprintTime >= sprintCooldown && key.shiftPressed) { //check if cooldown ended
+                isSprinting = true;
+                System.out.println("Sprint cooldown ended!");
+                sprintStartTime = currentTime;
+                Speed = runSpeed;
+            }
+        }
 
         if (key.upPressed && key.leftPressed) {
             y -= Speed;
