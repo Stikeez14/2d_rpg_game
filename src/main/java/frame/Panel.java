@@ -1,6 +1,8 @@
 package frame;
 
 import entities.Player;
+import map.mapSettings;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -65,6 +67,14 @@ public class Panel extends JPanel implements Runnable {
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D)g;
+
+        for(int i=0; i<mapSettings.getTilesHorizontally(); i++){
+            for (int j=0; j<mapSettings.getTilesVertically(); j++){
+                g2.setColor(Color.WHITE);
+                g2.fillRect(i*mapSettings.getTileSize(), j*mapSettings.getTileSize(), mapSettings.getTileSize(), mapSettings.getTileSize());
+            }
+        }
+
         player.draw(g2);
 
         g2.dispose();
