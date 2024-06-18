@@ -1,6 +1,6 @@
 package frame;
 
-import entities.Player;
+import entities.malePlayer;
 import map.mapSettings;
 
 import javax.swing.*;
@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class Panel extends JPanel implements Runnable {
 
-    Player player;
+    malePlayer player;
     Thread gameThread; //thread for the game loop
 
     private static final int FPS = 120;
@@ -17,7 +17,7 @@ public class Panel extends JPanel implements Runnable {
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
 
-        player = new Player(400, 300, this);
+        player = new malePlayer(400, 300, this);
     }
 
     public void startThread() {
