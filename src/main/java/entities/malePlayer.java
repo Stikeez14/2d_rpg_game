@@ -9,8 +9,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class malePlayer {
@@ -236,7 +234,7 @@ public class malePlayer {
             walkright2EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkright" + File.separator + "walkright2EternalLeggings.png")));
 
         } catch(IOException e){
-            e.printStackTrace();
+            throw new RuntimeException("Failed to load player visuals!", e);
         }
     }
 
