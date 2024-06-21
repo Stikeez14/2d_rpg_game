@@ -1,4 +1,4 @@
-package items.equipment;
+package items.equipment.weapons;
 
 abstract class Weapon {
 

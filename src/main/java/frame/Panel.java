@@ -18,6 +18,7 @@ public class Panel extends JPanel implements Runnable {
         this.setBackground(Color.BLACK);
 
         player = new malePlayer(400, 300, this);
+        player.setArmour(true,true,true);
     }
 
     public void startThread() {
