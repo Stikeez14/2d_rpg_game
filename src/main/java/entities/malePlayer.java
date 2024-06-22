@@ -1,6 +1,7 @@
 package entities;
 
 import frame.Panel;
+import frame.Window;
 import inputs.keyHandler;
 import map.mapSettings;
 
@@ -28,8 +29,11 @@ public class malePlayer {
     private int spriteCounter = 0;
     private int spriteFlag = 1;
 
-    private int x;
-    private int y;
+    public int x; // coordinates used for spawning the player on the map
+    public int y;
+
+    public final int screenX; // coordinates used for camera
+    public final int screenY;
 
     private final int width;
     private final int height;
@@ -47,6 +51,9 @@ public class malePlayer {
     public malePlayer(int x, int y, Panel gamePanel) {
         this.x = x;
         this.y = y;
+
+        screenX = Window.getScreenWidth()/2 - (mapSettings.getTileSize()/2); // subtracting tile size
+        screenY = Window.getScreenHeight()/2 - (mapSettings.getTileSize()/2); // for positioning the player in the center
 
         width = mapSettings.getTileSize();
         height = mapSettings.getTileSize();
@@ -176,16 +183,16 @@ public class malePlayer {
                 break;
         }
 
-        g2.drawImage(player, x, y, width, height, null);
+        g2.drawImage(player, screenX, screenY, width, height, null);
 
         if (helmet != null) {
-            g2.drawImage(helmet, x, y, width, height, null);
+            g2.drawImage(helmet, screenX, screenY, width, height, null);
         }
         if (chestplate != null) {
-            g2.drawImage(chestplate, x, y, width, height, null);
+            g2.drawImage(chestplate, screenX, screenY, width, height, null);
         }
         if (leggings != null) {
-            g2.drawImage(leggings, x, y, width, height, null);
+            g2.drawImage(leggings, screenX, screenY, width, height, null);
         }
 
 

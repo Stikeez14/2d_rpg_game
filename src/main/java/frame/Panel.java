@@ -8,7 +8,7 @@ import java.awt.*;
 
 public class Panel extends JPanel implements Runnable {
 
-    malePlayer player;
+    public malePlayer player;
     Thread gameThread; //thread for the game loop
     generateMap map = new generateMap(this);
 
@@ -18,7 +18,7 @@ public class Panel extends JPanel implements Runnable {
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
 
-        player = new malePlayer(400, 300, this);
+        player = new malePlayer(500, 500, this);
         player.setArmour(false,false,false);
     }
 
