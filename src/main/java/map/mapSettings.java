@@ -13,8 +13,8 @@ public class mapSettings {
     private static final int tilesHorizontally = Window.getScreenWidth() / finalTileSize;
 
     /* WORLD MAP SETTINGS */
-    private static final int maxTilesVertically = 100;
-    private static final int maxTilesHorizontally = 100;
+    private static final int maxTilesVertically = 200;
+    private static final int maxTilesHorizontally = 200;
     private final int worldWidth = finalTileSize * maxTilesHorizontally;
     private final int worldHeight = finalTileSize * maxTilesVertically;
 

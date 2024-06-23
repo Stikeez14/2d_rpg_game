@@ -9,9 +9,9 @@ import java.io.File;
 public class startGame {
 
     public static void main (String[] args){
-        System.out.println("time bound ~ 0.9");
-        Panel game = new Panel();
+        System.out.println("time bound ~ 0.10");
         new generateData("src" + File.separator + "main" + File.separator + "resources" + File.separator + "map" + File.separator + "mapData.txt");
+        Panel game = new Panel();
         new Window(game);
     }
 }

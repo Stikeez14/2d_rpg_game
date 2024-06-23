@@ -15,7 +15,7 @@ public class generateMap {
 
     public generateMap(Panel gamePanel) {
         this.gamePanel=gamePanel;
-        tiles = new Tile[6];
+        tiles = new Tile[11];
         mapTileArray = new int[mapSettings.getMaxTilesHorizontally()][mapSettings.getMaxTilesVertically()];
         getTileImage();
         loadMap(File.separator + "map" + File.separator + "mapData.txt");
@@ -30,13 +30,31 @@ public class generateMap {
             tiles [1].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sand2.png")));
 
             tiles [2] = new Tile();
-            tiles [2].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock1.png")));
+            tiles [2].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandPaddle1.png")));
 
             tiles [3] = new Tile();
-            tiles [3].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock2.png")));
+            tiles [3].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandPaddle2.png")));
 
             tiles [4] = new Tile();
-            tiles [4].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock3.png")));
+            tiles [4].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandPaddle3.png")));
+
+            tiles [5] = new Tile();
+            tiles [5].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree1.png")));
+
+            tiles [6] = new Tile();
+            tiles [6].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree2.png")));
+
+            tiles [7] = new Tile();
+            tiles [7].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree3.png")));
+
+            tiles [8] = new Tile();
+            tiles [8].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree4.png")));
+
+            tiles [9] = new Tile();
+            tiles [9].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock1.png")));
+
+            tiles [10] = new Tile();
+            tiles [10].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock2.png")));
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load map tiles!", e);
