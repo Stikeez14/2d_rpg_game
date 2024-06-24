@@ -10,8 +10,10 @@ import java.util.Objects;
 public class generateMap {
 
     Panel gamePanel;
-    Tile[] tiles;
-    int[][] mapTileArray;
+    public Tile[] tiles;
+    public int[][] mapTileArray;
+
+    public Rectangle hitboxTile5;
 
     public generateMap(Panel gamePanel) {
         this.gamePanel=gamePanel;
@@ -40,21 +42,29 @@ public class generateMap {
 
             tiles [5] = new Tile();
             tiles [5].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree1.png")));
+            hitboxTile5 = new Rectangle(40, 10, 45, 115);
+            tiles [5].collisionAreas.add(hitboxTile5); // example partial collision area
+            tiles [5].collision = true;
 
             tiles [6] = new Tile();
             tiles [6].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree2.png")));
+            tiles [6].collision = true;
 
             tiles [7] = new Tile();
             tiles [7].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree3.png")));
+            tiles [7].collision = true;
 
             tiles [8] = new Tile();
             tiles [8].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree4.png")));
+            tiles [8].collision = true;
 
             tiles [9] = new Tile();
             tiles [9].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock1.png")));
+            tiles [9].collision = true;
 
             tiles [10] = new Tile();
             tiles [10].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandRock2.png")));
+            tiles [10].collision = true;
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to load map tiles!", e);
@@ -65,24 +75,40 @@ public class generateMap {
         int worldCol = 0;
         int worldRow = 0;
 
-        while (worldCol < mapSettings.getMaxTilesHorizontally() && worldRow < mapSettings.getMaxTilesVertically()){
-
+        while (worldCol < mapSettings.getMaxTilesHorizontally() && worldRow < mapSettings.getMaxTilesVertically()) {
             int tileNum = mapTileArray[worldCol][worldRow];
             int worldX = worldCol * mapSettings.getTileSize();
             int worldY = worldRow * mapSettings.getTileSize();
             int screenX = worldX - gamePanel.player.x + gamePanel.player.screenX;
             int screenY = worldY - gamePanel.player.y + gamePanel.player.screenY;
 
-            if(worldX + 2 * mapSettings.getTileSize() > gamePanel.player.x - gamePanel.player.screenX
+            if (worldX + 2 * mapSettings.getTileSize() > gamePanel.player.x - gamePanel.player.screenX
                     && worldX - 2 * mapSettings.getTileSize() < gamePanel.player.x + gamePanel.player.screenX
                     && worldY + 2 * mapSettings.getTileSize() > gamePanel.player.y - gamePanel.player.screenY
-                    && worldY - 2 * mapSettings.getTileSize() < gamePanel.player.y + gamePanel.player.screenY)
-                g2.drawImage(tiles[tileNum].image, screenX, screenY , mapSettings.getTileSize(), mapSettings.getTileSize(), null);
+                    && worldY - 2 * mapSettings.getTileSize() < gamePanel.player.y + gamePanel.player.screenY) {
+                g2.drawImage(tiles[tileNum].image, screenX, screenY, mapSettings.getTileSize(), mapSettings.getTileSize(), null);
+
+                // draw tile collision box if the tile has collision
+                if (tiles[tileNum].collision) {
+                    g2.setColor(new Color(255, 0, 0, 100)); // semi-transparent red
+                    g2.fillRect(screenX, screenY, mapSettings.getTileSize(), mapSettings.getTileSize());
+                    g2.setColor(Color.RED);
+                    g2.drawRect(screenX, screenY, mapSettings.getTileSize(), mapSettings.getTileSize());
+
+                    // draw partial collision areas
+                    for (Rectangle rect : tiles[tileNum].collisionAreas) {
+                        g2.setColor(new Color(0, 255, 0, 100)); // semi-transparent green
+                        g2.fillRect(screenX + rect.x, screenY + rect.y, rect.width, rect.height);
+                        g2.setColor(Color.GREEN);
+                        g2.drawRect(screenX + rect.x, screenY + rect.y, rect.width, rect.height);
+                    }
+                }
+            }
             worldCol++;
 
-            if (worldCol == mapSettings.getMaxTilesHorizontally()){
+            if (worldCol == mapSettings.getMaxTilesHorizontally()) {
                 worldCol = 0;
-                worldRow ++;
+                worldRow++;
             }
         }
     }

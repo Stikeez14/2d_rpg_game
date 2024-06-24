@@ -1,5 +1,6 @@
 package frame;
 
+import collision.checkCollision;
 import entities.malePlayer;
 import map.generateMap;
 
@@ -10,7 +11,8 @@ public class Panel extends JPanel implements Runnable {
 
     public malePlayer player;
     Thread gameThread; //thread for the game loop
-    generateMap map = new generateMap(this);
+    public generateMap map = new generateMap(this);
+    public checkCollision ck = new checkCollision(this);
 
     private static final int FPS = 120;
 

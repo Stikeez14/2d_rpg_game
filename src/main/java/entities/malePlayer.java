@@ -23,8 +23,10 @@ public class malePlayer {
     walkleft2EternalChestplate, walkleft1EternalChestplate , walkleftEternalHelmet, walkleft2EternalLeggings, walkleft1EternalLeggings,
     walkright1EternalChestplate, walkright2EternalChestplate, walkrightEternalHelmet, walkright1EternalLeggings, walkright2EternalLeggings;
 
+    Panel gamePanel;
 
-    private String direction;
+    public int Speed;
+    public String direction;
 
     private int spriteCounter = 0;
     private int spriteFlag = 1;
@@ -38,7 +40,9 @@ public class malePlayer {
     private final int width;
     private final int height;
 
-    Rectangle hitbox;
+    public Rectangle hitbox;
+
+    public boolean collision = false;
 
     private boolean isSprinting = false;
     private long sprintStartTime = 0;
@@ -51,13 +55,16 @@ public class malePlayer {
     public malePlayer(int x, int y, Panel gamePanel) {
         this.x = x;
         this.y = y;
+        this.gamePanel=gamePanel;
 
         screenX = Window.getScreenWidth()/2 - (mapSettings.getTileSize()/2); // subtracting tile size
         screenY = Window.getScreenHeight()/2 - (mapSettings.getTileSize()/2); // for positioning the player in the center
 
         width = mapSettings.getTileSize();
         height = mapSettings.getTileSize();
-        hitbox = new Rectangle(x, y, width, height);
+
+        hitbox = new Rectangle(32, 44, 64, 80);
+
 
         gamePanel.addKeyListener(key);
         gamePanel.setFocusable(true); // helps with receiving key events
@@ -67,8 +74,8 @@ public class malePlayer {
     }
 
     public void setPlayer() {
+        Speed = 2;
         int runSpeed = 4;
-        int Speed = 2;
         long currentTime = System.currentTimeMillis();
 
         //* SPRINTING */
@@ -91,42 +98,81 @@ public class malePlayer {
             }
         }
 
-        // update player position and sent direction
+        // update player direction
         if (key.upPressed) {
-            y -= Speed;
             if (key.leftPressed) {
                 direction = "up&left";
-                x -= Speed;
             } else if (key.rightPressed) {
                 direction = "up&right";
-                x += Speed;
             } else {
                 direction = "up";
             }
         } else if (key.downPressed) {
-            y += Speed;
             if (key.leftPressed) {
                 direction = "down&left";
-                x -= Speed;
             } else if (key.rightPressed) {
                 direction = "down&right";
-                x += Speed;
             } else {
                 direction = "down";
             }
         } else if (key.leftPressed) {
             direction = "left";
-            x -= Speed;
         } else if (key.rightPressed) {
             direction = "right";
-            x += Speed;
         } else {
             direction = "standing";
         }
 
-        // update hitbox
-        hitbox.x = x;
-        hitbox.y = y;
+        collision = false;
+        gamePanel.ck.checkTile(this);
+
+        /*int screenX = x - gamePanel.player.x + gamePanel.player.screenX;
+        int screenY = y - gamePanel.player.y + gamePanel.player.screenY;
+
+        int tileScreenX = gamePanel.map.hitboxTile5.x - x + screenX;
+        int tileScreenY = gamePanel.map.hitboxTile5.y - y + screenY;
+
+        Rectangle playerBounds = new Rectangle(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height); // assuming x, y are player coordinates
+        Rectangle tileCollisionArea = new Rectangle(tileScreenX, tileScreenY, gamePanel.map.hitboxTile5.width, gamePanel.map.hitboxTile5.height);
+
+        if (playerBounds.intersects(tileCollisionArea)) {
+            collision = true;
+            System.out.println("intersects");
+        } */
+
+        // update player position on screen
+        if(!collision) {
+            switch (direction) {
+                case "up":
+                    y -= Speed;
+                    break;
+                case "up&left":
+                    y -= Speed;
+                    x -= Speed;
+                    break;
+                case "up&right":
+                    y -= Speed;
+                    x += Speed;
+                    break;
+                case "down":
+                    y += Speed;
+                    break;
+                case "down&left":
+                    y += Speed;
+                    x -= Speed;
+                    break;
+                case "down&right":
+                    y += Speed;
+                    x += Speed;
+                    break;
+                case "left":
+                    x -= Speed;
+                    break;
+                case "right":
+                    x += Speed;
+                    break;
+            }
+        }
 
         // update sprite flag based on counter
         spriteCounter++;
@@ -195,7 +241,12 @@ public class malePlayer {
             g2.drawImage(leggings, screenX, screenY, width, height, null);
         }
 
+        // TESTING FOR PLAYER COLLISION
+        int screenX = x - gamePanel.player.x + gamePanel.player.screenX;
+        int screenY = y - gamePanel.player.y + gamePanel.player.screenY;
 
+        g2.setColor(Color.RED);
+        g2.drawRect(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height);
     }
 
     public void loadPlayerVisuals() {
