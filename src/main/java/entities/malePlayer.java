@@ -25,6 +25,8 @@ public class malePlayer {
 
     Panel gamePanel;
 
+    public boolean collisionUp, collisionDown, collisionLeft, collisionRight;
+
     public int Speed;
     public String direction;
 
@@ -63,7 +65,7 @@ public class malePlayer {
         width = mapSettings.getTileSize();
         height = mapSettings.getTileSize();
 
-        hitbox = new Rectangle(32, 44, 64, 80);
+        hitbox = new Rectangle(37, 74, 50, 50);
 
 
         gamePanel.addKeyListener(key);
@@ -123,55 +125,19 @@ public class malePlayer {
             direction = "standing";
         }
 
-        collision = false;
         gamePanel.ck.checkTile(this);
 
-        /*int screenX = x - gamePanel.player.x + gamePanel.player.screenX;
-        int screenY = y - gamePanel.player.y + gamePanel.player.screenY;
-
-        int tileScreenX = gamePanel.map.hitboxTile5.x - x + screenX;
-        int tileScreenY = gamePanel.map.hitboxTile5.y - y + screenY;
-
-        Rectangle playerBounds = new Rectangle(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height); // assuming x, y are player coordinates
-        Rectangle tileCollisionArea = new Rectangle(tileScreenX, tileScreenY, gamePanel.map.hitboxTile5.width, gamePanel.map.hitboxTile5.height);
-
-        if (playerBounds.intersects(tileCollisionArea)) {
-            collision = true;
-            System.out.println("intersects");
-        } */
-
-        // update player position on screen
-        if(!collision) {
-            switch (direction) {
-                case "up":
-                    y -= Speed;
-                    break;
-                case "up&left":
-                    y -= Speed;
-                    x -= Speed;
-                    break;
-                case "up&right":
-                    y -= Speed;
-                    x += Speed;
-                    break;
-                case "down":
-                    y += Speed;
-                    break;
-                case "down&left":
-                    y += Speed;
-                    x -= Speed;
-                    break;
-                case "down&right":
-                    y += Speed;
-                    x += Speed;
-                    break;
-                case "left":
-                    x -= Speed;
-                    break;
-                case "right":
-                    x += Speed;
-                    break;
-            }
+        if (direction.contains("up") && !collisionUp) {
+            y -= Speed;
+        }
+        if (direction.contains("down") && !collisionDown) {
+            y += Speed;
+        }
+        if (direction.contains("left") && !collisionLeft) {
+            x -= Speed;
+        }
+        if (direction.contains("right") && !collisionRight) {
+            x += Speed;
         }
 
         // update sprite flag based on counter
@@ -183,7 +149,6 @@ public class malePlayer {
             spriteCounter = 0;
         }
     }
-
 
     public void draw(Graphics2D g2) {
 
@@ -242,11 +207,12 @@ public class malePlayer {
         }
 
         // TESTING FOR PLAYER COLLISION
+        /*
         int screenX = x - gamePanel.player.x + gamePanel.player.screenX;
         int screenY = y - gamePanel.player.y + gamePanel.player.screenY;
 
         g2.setColor(Color.RED);
-        g2.drawRect(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height);
+        g2.drawRect(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height); */
     }
 
     public void loadPlayerVisuals() {

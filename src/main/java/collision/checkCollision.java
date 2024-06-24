@@ -3,6 +3,9 @@ package collision;
 import frame.Panel;
 import entities.malePlayer;
 import map.mapSettings;
+import map.Tile;
+
+import java.awt.*;
 
 public class checkCollision {
 
@@ -12,73 +15,59 @@ public class checkCollision {
         this.gamePanel = gamePanel;
     }
 
-    public void checkTile(malePlayer player){
+    public void checkTile(malePlayer player) {
 
-        int entityLeftX = player.x + player.hitbox.x;
-        int entityRightX = player.x + player.hitbox.x + player.hitbox.width;
-        int entityTopY = player.y + player.hitbox.y;
-        int entityBottomY = player.y + player.hitbox.y + player.hitbox.height;
+        player.collisionUp = false;
+        player.collisionDown = false;
+        player.collisionLeft = false;
+        player.collisionRight = false;
 
-        int entityLeft = entityLeftX / mapSettings.getTileSize();
-        int entityRight = entityRightX / mapSettings.getTileSize();
-        int entityTop = entityTopY / mapSettings.getTileSize();
-        int entityBottom = entityBottomY / mapSettings.getTileSize();
+        Rectangle playerRect = new Rectangle(player.x + player.hitbox.x, player.y + player.hitbox.y, player.hitbox.width, player.hitbox.height);
+        int tileSize = mapSettings.getTileSize();
 
-        int tileNum1, tileNum2;
+        for (int row = -1; row <= 1; row++) { // check for collision in each of the directions
+            for (int col = -1; col <= 1; col++) {
+                int tileX = (player.x + player.hitbox.x) / tileSize + col;
+                int tileY = (player.y + player.hitbox.y) / tileSize + row;
 
-        switch (player.direction) {
-            case "down":
-                entityBottom = (entityBottomY + player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityLeft][entityBottom];
-                tileNum2 = gamePanel.map.mapTileArray[entityRight][entityBottom];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "up":
-                entityTop = (entityTopY - player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityLeft][entityTop];
-                tileNum2 = gamePanel.map.mapTileArray[entityRight][entityTop];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "left":
-                entityLeft = (entityLeftX - player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityLeft][entityTop];
-                tileNum2 = gamePanel.map.mapTileArray[entityLeft][entityBottom];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "right":
-                entityRight = (entityRightX + player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityRight][entityTop];
-                tileNum2 = gamePanel.map.mapTileArray[entityRight][entityBottom];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "down&left":
-                entityBottom = (entityBottomY + player.Speed) / mapSettings.getTileSize();
-                entityLeft = (entityLeftX - player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityLeft][entityBottom];
-                tileNum2 = gamePanel.map.mapTileArray[entityLeft][entityTop];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "down&right":
-                entityBottom = (entityBottomY + player.Speed) / mapSettings.getTileSize();
-                entityRight = (entityRightX + player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityRight][entityBottom];
-                tileNum2 = gamePanel.map.mapTileArray[entityRight][entityTop];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "up&left":
-                entityTop = (entityTopY - player.Speed) / mapSettings.getTileSize();
-                entityLeft = (entityLeftX - player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityLeft][entityTop];
-                tileNum2 = gamePanel.map.mapTileArray[entityLeft][entityBottom];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
-            case "up&right":
-                entityTop = (entityTopY - player.Speed) / mapSettings.getTileSize();
-                entityRight = (entityRightX + player.Speed) / mapSettings.getTileSize();
-                tileNum1 = gamePanel.map.mapTileArray[entityRight][entityTop];
-                tileNum2 = gamePanel.map.mapTileArray[entityRight][entityBottom];
-                if (gamePanel.map.tiles[tileNum1].collision || gamePanel.map.tiles[tileNum2].collision) player.collision = true;
-                break;
+                if (tileX >= 0 && tileX < mapSettings.getMaxTilesHorizontally() && tileY >= 0 && tileY < mapSettings.getMaxTilesVertically()) {
+                    int tileNum = gamePanel.map.mapTileArray[tileX][tileY];
+
+                    if (tileNum >= 0 && tileNum < gamePanel.map.tiles.length) {
+                        Tile tile = gamePanel.map.tiles[tileNum];
+
+                        if (tile != null && tile.collision) {
+                            for (Rectangle rect : tile.collisionAreas) {
+                                Rectangle tileRect = new Rectangle(tileX * tileSize + rect.x, tileY * tileSize + rect.y, rect.width, rect.height);
+
+                                // check collision if player moves up
+                                if (playerRect.y - player.Speed < tileRect.y + tileRect.height && playerRect.y >= tileRect.y + tileRect.height &&
+                                        playerRect.x + playerRect.width > tileRect.x && playerRect.x < tileRect.x + tileRect.width) {
+                                    player.collisionUp = true;
+                                }
+
+                                // check collision if player moves down
+                                if (playerRect.y + playerRect.height + player.Speed > tileRect.y && playerRect.y + playerRect.height <= tileRect.y &&
+                                        playerRect.x + playerRect.width > tileRect.x && playerRect.x < tileRect.x + tileRect.width) {
+                                    player.collisionDown = true;
+                                }
+
+                                // check collision if player moves left
+                                if (playerRect.x - player.Speed < tileRect.x + tileRect.width && playerRect.x >= tileRect.x + tileRect.width &&
+                                        playerRect.y + playerRect.height > tileRect.y && playerRect.y < tileRect.y + tileRect.height) {
+                                    player.collisionLeft = true;
+                                }
+
+                                // check collision if player moves right
+                                if (playerRect.x + playerRect.width + player.Speed > tileRect.x && playerRect.x + playerRect.width <= tileRect.x &&
+                                        playerRect.y + playerRect.height > tileRect.y && playerRect.y < tileRect.y + tileRect.height) {
+                                    player.collisionRight = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
