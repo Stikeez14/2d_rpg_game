@@ -207,12 +207,12 @@ public class malePlayer {
         }
 
         // TESTING FOR PLAYER COLLISION
-        /*
+
         int screenX = x - gamePanel.player.x + gamePanel.player.screenX;
         int screenY = y - gamePanel.player.y + gamePanel.player.screenY;
 
         g2.setColor(Color.RED);
-        g2.drawRect(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height); */
+        g2.drawRect(screenX + hitbox.x, screenY + hitbox.y, hitbox.width, hitbox.height);
     }
 
     public void loadPlayerVisuals() {

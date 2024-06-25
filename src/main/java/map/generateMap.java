@@ -40,7 +40,7 @@ public class generateMap {
 
             tiles[5] = new Tile();
             tiles[5].image = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "tiles" + File.separator + "sandTree1.png")));
-            tiles[5].collisionAreas.add(new Rectangle(40, 10, 45, 115));
+            tiles[5].collisionAreas.add(new Rectangle(40, 65, 45, 60));
             tiles[5].collision = true;
 
             tiles[6] = new Tile();
@@ -91,10 +91,10 @@ public class generateMap {
                 g2.drawImage(tiles[tileNum].image, screenX, screenY, mapSettings.getTileSize(), mapSettings.getTileSize(), null);
 
                 /* DRAWING RECTANGLE COLLISION FOR OBJECT FOR TESTING */
-                /*
+
                 // draw tile collision box if the tile has collision
                 if (tiles[tileNum].collision) {
-                    // Draw partial collision areas
+                    // draw partial collision areas
                     for (Rectangle rect : tiles[tileNum].collisionAreas) {
                         g2.setColor(new Color(0, 255, 0, 100)); // semi-transparent green
                         g2.fillRect(screenX + rect.x, screenY + rect.y, rect.width, rect.height);
@@ -102,7 +102,7 @@ public class generateMap {
                         g2.drawRect(screenX + rect.x, screenY + rect.y, rect.width, rect.height);
                     }
                 }
-                */
+
             }
             worldCol++;
 
