@@ -1,18 +1,18 @@
 package frame;
 
-import collision.checkCollision;
-import entities.malePlayer;
-import map.generateMap;
+import collision.Collision;
+import entities.Player;
+import map.Map;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class Panel extends JPanel implements Runnable {
 
-    public malePlayer player;
+    public Player player;
     Thread gameThread; //thread for the game loop
-    public generateMap map = new generateMap(this);
-    public checkCollision ck = new checkCollision(this);
+    public Map map = new Map(this);
+    public Collision ck = new Collision(this);
 
     private static final int FPS = 120;
 
@@ -20,8 +20,8 @@ public class Panel extends JPanel implements Runnable {
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
 
-        player = new malePlayer(500, 500, this);
-        player.setArmour(false,false,false);
+        player = new Player(1500, 1500, this);
+        player.setArmour(true,false,true);
     }
 
     public void startThread() {
@@ -64,7 +64,7 @@ public class Panel extends JPanel implements Runnable {
     }
 
     public void update() {
-        player.setPlayer();
+        player.setEntity();
     }
 
     public void paintComponent (Graphics g) {
@@ -73,7 +73,6 @@ public class Panel extends JPanel implements Runnable {
         Graphics2D g2 = (Graphics2D)g;
 
         map.draw(g2);
-        player.draw(g2);
 
         g2.dispose();
     }
