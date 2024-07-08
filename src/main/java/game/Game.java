@@ -9,14 +9,14 @@ public class Game {
 
     public static void main (String[] args){
 
-        System.out.println("time bound ~ 0.13\n");
+        System.out.println("time bound ~ 0.13.5w\n");
 
         String mapPath = "src" + File.separator + "main" + File.separator + "resources" + File.separator + "map" + File.separator + "mapData.txt";
-        DataMatrix dataGenerator = new DataMatrix(mapPath);
+        DataMatrix genData = new DataMatrix(mapPath);
 
         try {
             // wait until the map data generation is complete
-            dataGenerator.awaitDataGeneration();
+            genData.awaitDataGeneration();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // restore interrupted status
             System.err.println("Data generation was interrupted.");
@@ -24,7 +24,7 @@ public class Game {
         }
 
         // initialize the game after the data generation is complete
-        if(dataGenerator.isDataGenerated()) initializeGame();
+        if(genData.isDataGenerated()) initializeGame();
     }
 
     private static void initializeGame() {

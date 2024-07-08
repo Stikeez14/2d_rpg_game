@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 
 public class KeyboardKeys implements KeyListener {
 
-    public boolean upPressed, downPressed, leftPressed, rightPressed, shiftPressed;
+    public boolean upPressed, downPressed, leftPressed, rightPressed, shiftPressed, f3Pressed, f2Pressed;
 
     @Override
     public void keyTyped(KeyEvent e) {}
@@ -21,6 +21,8 @@ public class KeyboardKeys implements KeyListener {
         if(value == KeyEvent.VK_A) leftPressed = true;
         if(value == KeyEvent.VK_D) rightPressed = true;
         if(value == KeyEvent.VK_SHIFT) shiftPressed = true;
+        if(value == KeyEvent.VK_F3) f3Pressed = true;
+        if(value == KeyEvent.VK_F2) f2Pressed = true;
 
         e.consume();
     }
@@ -36,6 +38,8 @@ public class KeyboardKeys implements KeyListener {
         if(value == KeyEvent.VK_A) leftPressed = false;
         if(value == KeyEvent.VK_D) rightPressed = false;
         if(value == KeyEvent.VK_SHIFT) shiftPressed = false;
+        if(value == KeyEvent.VK_F3) f3Pressed = false;
+        if(value == KeyEvent.VK_F2) f2Pressed = false;
 
         e.consume();
     }
