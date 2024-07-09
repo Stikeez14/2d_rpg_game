@@ -127,6 +127,7 @@ public class Map {
                         if (drawCollision) drawCollisionAreas(g2,tileNum,screenX,screenY); }  // draw debug collision info
                     else if (!playerDrawn) {
                         gamePanel.player.draw(g2); // draw player
+                        gamePanel.bandit.draw(g2); // draw bandit
                         playerDrawn = true;
                     }
                 }

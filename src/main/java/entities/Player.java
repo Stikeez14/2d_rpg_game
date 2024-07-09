@@ -17,13 +17,13 @@ public class Player extends Entity {
     private final KeyboardKeys key = new KeyboardKeys(); // key handler for taking keyboard inputs
 
     // player visuals
-    private BufferedImage standingEternalChestPlate, standingEternalHelmet, standingEternalLeggings,
-            walkUpEternalHelmet, walkUp1EternalChestPlate, walkUp2EternalChestPlate, walkUp1EternalLeggings, walkUp2EternalLeggings,
-            walkDownEternalHelmet, walkDown1EternalChestPlate, walkDown2EternalChestPlate, walkDown1EternalLeggings, walkDown2EternalLeggings,
-            walkLeft2EternalChestPlate, walkLeft1EternalChestPlate , walkLeftEternalHelmet, walkLeft2EternalLeggings, walkLeft1EternalLeggings,
-            walkRight1EternalChestPlate, walkRight2EternalChestPlate, walkRightEternalHelmet, walkRight1EternalLeggings, walkRight2EternalLeggings;
+    private BufferedImage standingEternalHelmet, standingEternalChestPlate, standingEternalLeggings;
+    private BufferedImage walkUpEternalHelmet, walkUp1EternalChestPlate, walkUp2EternalChestPlate, walkUp1EternalLeggings, walkUp2EternalLeggings;
+    private BufferedImage walkDownEternalHelmet, walkDown1EternalChestPlate, walkDown2EternalChestPlate, walkDown1EternalLeggings, walkDown2EternalLeggings;
+    private BufferedImage walkLeftEternalHelmet, walkLeft1EternalChestPlate, walkLeft2EternalChestPlate, walkLeft1EternalLeggings, walkLeft2EternalLeggings;
+    private BufferedImage walkRightEternalHelmet, walkRight1EternalChestPlate, walkRight2EternalChestPlate, walkRight1EternalLeggings, walkRight2EternalLeggings;
 
-    private boolean isSprinting = false; // flag used to determine player sprinting
+    public boolean isSprinting = false; // flag used to determine player sprinting
     // timestamps for sprint start & end
     private long sprintStartTime = 0;
     private long lastSprintTime = 0;
@@ -61,16 +61,15 @@ public class Player extends Entity {
         setDrawStatus(); // update flags for drawing information on screen
 
         gamePanel.ck.checkTileCollision(this); // check if the player is colliding with the tiles collision areas
+        gamePanel.ck.checkEntityCollision(this, gamePanel.bandit);
         moveEntity(); // move the player based on collision flags
 
-        // update sprite flag based on counter
-        spriteCounter++;
-        int spriteThreshold = isSprinting ? 10 : 20; // faster sprite change when sprinting
+        updateSpriteFlag(); // update sprite flag based on counter
+    }
 
-        if (spriteCounter > spriteThreshold) { // toggle sprite flag between 1 & 2 and reset counter
-            spriteFlag = (spriteFlag == 1) ? 2 : 1;
-            spriteCounter = 0;
-        }
+    @Override
+    protected void moveEntity() {
+        super.moveEntity(); // Call the parent method to avoid code duplication
     }
 
     @Override
@@ -131,7 +130,7 @@ public class Player extends Entity {
             walkRight2EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight2EternalLeggings.png")));
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load Player Visuals!");
+            throw new RuntimeException("Failed to load Player Visuals!", e);
         }
     }
 
@@ -226,6 +225,16 @@ public class Player extends Entity {
         } else previousF2Pressed = false;
 
         setIsDrawInfo(currentF2Pressed);
+    }
+
+    private void updateSpriteFlag() {
+        spriteCounter++;
+        int spriteThreshold = isSprinting ? 10 : 20; // faster sprite change when sprinting
+
+        if (spriteCounter > spriteThreshold) { // toggle sprite flag between 1 & 2 and reset counter
+            spriteFlag = (spriteFlag == 1) ? 2 : 1;
+            spriteCounter = 0;
+        }
     }
 
     /** DRAW ARMOUR */

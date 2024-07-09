@@ -1,6 +1,7 @@
 package frame;
 
 import collision.Collision;
+import entities.Bandit;
 import entities.Player;
 import map.Map;
 
@@ -11,13 +12,18 @@ import java.awt.font.FontRenderContext;
 public class Panel extends JPanel implements Runnable {
 
     public Player player;
+    public Bandit bandit;
     Thread gameThread; //thread for the game loop
     public Map map = new Map(this);
     public Collision ck = new Collision(this);
 
     private static final int FPS = 120;
     private int fpsCount; // attribute used to print the fps on screen
-    private long timeToDraw = 0;
+
+    // attributes required to compute draw time average;
+    private long drawTimeAverage = 0;
+    private long drawTimes = 0;
+    private int frames = 0;
 
     public Panel() {
         this.setDoubleBuffered(true); //better rendering performance
@@ -25,6 +31,8 @@ public class Panel extends JPanel implements Runnable {
 
         player = new Player(1500, 1500, this);
         player.setArmour(true,false,false);
+
+        bandit = new Bandit(1600,1600,this);
     }
 
     public void startThread() {
@@ -74,8 +82,8 @@ public class Panel extends JPanel implements Runnable {
 
     public void update() {
         player.setEntity(); // updates the player
+        bandit.setEntity();
     }
-
 
     public void paintComponent (Graphics g) {
         super.paintComponent(g);
@@ -87,7 +95,16 @@ public class Panel extends JPanel implements Runnable {
         map.draw(g2); // draw the map and entities
 
         long endTime = System.nanoTime(); // end time -> after drawing
-        timeToDraw = endTime - startTime; // elapsed time
+        long timeToDraw = endTime - startTime; // elapsed time
+
+        drawTimes += timeToDraw; // adding draw times all together
+        frames++; // incrementing frames
+
+        if(frames >= 5){ // after 5 frames
+            drawTimeAverage = drawTimes/5; // compute average of the 5 draw times
+            drawTimes = 0; // reset frames counter & draw times accumulator
+            frames = 0;
+        }
 
         g2.dispose();
     }
@@ -95,7 +112,7 @@ public class Panel extends JPanel implements Runnable {
     /** FPS & DRAW TIME */
     /* get methods */
     public int getFPS(){ return fpsCount; }
-    public double getDrawTime(){ return timeToDraw / 1000000000.0; }
+    public double getDrawTime(){ return drawTimeAverage / 1000000000.0; }
 
     /* draw method for information on scree */
     public void drawInfo(Graphics2D g2, String text, int value, int x, int y) {

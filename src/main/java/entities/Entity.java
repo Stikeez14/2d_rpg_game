@@ -13,22 +13,25 @@ public abstract class Entity {
 
     private int originalX, originalY; // x & y coordinates not adjusted by scaling
 
-    private int x, y; // coordinates that are adjusted by scaling
+    int x;
+    int y; // coordinates that are adjusted by scaling
 
     private final int screenX, screenY; // screen center coordinates
-    private int width, height; // tile dimensions
+
+    int width, height; // tile dimensions
 
     protected Rectangle hitbox; // entity hitbox for checking collision
     protected String direction; // direction the entity is moving towards (based on keyboard keys)
 
     protected int Speed; // entity movements speed (affected by scaling)
 
-    private boolean collisionUp, collisionDown, collisionLeft, collisionRight; // flags to indicate collision
+    boolean collisionUp, collisionDown;
+    boolean collisionLeft, collisionRight; // flags to indicate collision
 
     protected int spriteCounter = 0; // counter and flag for sprite animation
     protected int spriteFlag = 1;
 
-    private boolean drawHitbox = false; // flag used to draw the entity hitbox on screen
+    boolean drawHitbox = false; // flag used to draw the entity hitbox on screen
 
     Panel gamePanel;
 
@@ -78,7 +81,7 @@ public abstract class Entity {
     }
 
     /* gets the sprite of the entity based on the direction it's moving */
-    private BufferedImage getCurrentSprite() {
+    BufferedImage getCurrentSprite() {
         return switch (direction) {
             case "down", "down&left", "down&right" -> (spriteFlag == 1) ? walkDown1 : walkDown2;
             case "up", "up&left", "up&right" -> (spriteFlag == 1) ? walkUp1 : walkUp2;
