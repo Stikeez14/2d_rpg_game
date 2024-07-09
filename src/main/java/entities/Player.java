@@ -61,7 +61,7 @@ public class Player extends Entity {
         setDrawStatus(); // update flags for drawing information on screen
 
         gamePanel.ck.checkTileCollision(this); // check if the player is colliding with the tiles collision areas
-        gamePanel.ck.checkEntityCollision(this, gamePanel.bandit);
+        gamePanel.ck.checkEntityCollision(this, gamePanel.bandit); // check if the player is colliding with the bandit
         moveEntity(); // move the player based on collision flags
 
         updateSpriteFlag(); // update sprite flag based on counter
@@ -74,7 +74,8 @@ public class Player extends Entity {
 
     @Override
     public void draw(Graphics2D g2) {
-        super.draw(g2);
+        BufferedImage image = getCurrentSprite(); // gets the sprite based on direction
+        g2.drawImage(image, getEntityScreenX(), getEntityScreenY(), width, height, null); // draws player on screen
 
         drawPlayerArmour(g2); // draws player on top of the player
 
@@ -84,6 +85,7 @@ public class Player extends Entity {
             gamePanel.drawInfo(g2, "x: ",  getOriginalX(),20,130); // draws the player x coordinate in the world
             gamePanel.drawInfo(g2, "y: ",  getOriginalY(),20,175); // draws the player y coordinate in the world
         }
+        if(drawHitbox) drawEntityHitbox(g2); // draws player hitbox with red
     }
 
     @Override
@@ -156,8 +158,11 @@ public class Player extends Entity {
                 int oldScale = Settings.getScale(); // store the scale before changing it
                 Settings.setWalkScale(); // change the scale to a bigger value (=6)
                 Map.setScale(Settings.getScale()); // update in Map Class the scale value for tiles & collision areas
-                adjustPosition(oldScale, Settings.getScale()); // adjust player position to be the same as before scaling
-                updateHitbox();  // scale player hitbox
+
+                // adjust player position to be the same as before scaling
+                for(int i=0; i<gamePanel.getEntities().size();i++) gamePanel.getEntities().get(i).adjustPosition(oldScale,Settings.getScale());
+
+                updateHitbox();  // scale entity hitbox
                 lastSprintTime = currentTime; // get the time when the sprint ended
             }
         } else {
@@ -174,8 +179,11 @@ public class Player extends Entity {
                 int oldScale = Settings.getScale(); // store the scale before changing it
                 Settings.setSprintScale(); // change the scale to a smaller value (=5)
                 Map.setScale(Settings.getScale()); // update in Map Class the scale value for tiles & collision areas
-                adjustPosition(oldScale, Settings.getScale()); // adjust player position to be the same as before scaling
-                updateHitbox(); // scale player hitbox
+
+                // adjust player position to be the same as before scaling
+                for(int i=0; i<gamePanel.getEntities().size();i++) gamePanel.getEntities().get(i).adjustPosition(oldScale,Settings.getScale());
+
+                updateHitbox(); // scale entity hitbox
                 sprintStartTime = currentTime;
                 Speed = runSpeed; // update speed
             }

@@ -7,13 +7,14 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
+import java.util.List;
 
 public class Bandit extends Entity {
 
-    private static final int DIRECTION_CHANGE_INTERVAL = 240;
+    private static final int MIN_DIRECTION_CHANGE_INTERVAL = 240;
+    private static final int MAX_DIRECTION_CHANGE_INTERVAL = 480;
+
     private int countCooldown;
     private final Random rand;
     private String lastCollisionDirection;
@@ -33,6 +34,9 @@ public class Bandit extends Entity {
         gamePanel.ck.checkTileCollision(this);
         gamePanel.ck.checkEntityCollision(this, gamePanel.player);
         moveEntity();
+
+        updateHitbox();
+
         updateSpriteFlag();
     }
 
@@ -62,54 +66,35 @@ public class Bandit extends Entity {
     protected void moveEntity() {
         boolean collided = false;
 
-        // check for collision & try moving the entity
+        // check for collision, move the entity & save last direction before collision
         if (direction.contains("up")) {
-            if (!collisionUp) {
-                y -= Speed;
-                lastCollisionDirection = "none";
-            } else {
-                collided = true;
-                lastCollisionDirection = "up";
-            }
+            if (!collisionUp) { y -= Speed; lastCollisionDirection = "none"; }
+            else { collided = true; lastCollisionDirection = "up"; }
         }
 
         if (direction.contains("down")) {
-            if (!collisionDown) {
-                y += Speed;
-                lastCollisionDirection = "none";
-            } else {
-                collided = true;
-                lastCollisionDirection = "down";
-            }
+            if (!collisionDown) { y += Speed; lastCollisionDirection = "none"; }
+            else { collided = true; lastCollisionDirection = "down"; }
         }
 
         if (direction.contains("left")) {
-            if (!collisionLeft) {
-                x -= Speed;
-                lastCollisionDirection = "none";
-            } else {
-                collided = true;
-                lastCollisionDirection = "left";
-            }
+            if (!collisionLeft) { x -= Speed; lastCollisionDirection = "none"; }
+            else { collided = true; lastCollisionDirection = "left"; }
         }
 
         if (direction.contains("right")) {
-            if (!collisionRight) {
-                x += Speed;
-                lastCollisionDirection = "none";
-            } else {
-                collided = true;
-                lastCollisionDirection = "right";
-            }
+            if (!collisionRight) { x += Speed; lastCollisionDirection = "none"; }
+            else { collided = true; lastCollisionDirection = "right"; }
         }
 
-        if (countCooldown > 0) {
-            countCooldown--; // decrease cooldown timer
-        }
+        if (countCooldown > 0) countCooldown--; // decrease cooldown timer
 
-        if (collided || countCooldown == 0) { // if the entity collides or  the cooldown ends
-            direction = getDirection(); // get new direction
-            countCooldown = DIRECTION_CHANGE_INTERVAL; // reset cooldown timer
+        if (collided || countCooldown == 0) {  // if the entity collides or  the cooldown ends
+            // gen random number between 0 & 1
+            if (rand.nextDouble() < 0.5) direction = "standing";  // 50 % chance to be in standing mode
+            else direction = getDirection(); // get new direction
+            // reset cooldown timer to a random value
+            countCooldown = MIN_DIRECTION_CHANGE_INTERVAL + rand.nextInt(MAX_DIRECTION_CHANGE_INTERVAL - MIN_DIRECTION_CHANGE_INTERVAL + 1);
         }
     }
 
@@ -123,15 +108,20 @@ public class Bandit extends Entity {
     }
 
     private String getDirection() {
-        String[] validDirections;
-        if (direction.equals("standing")) {
-            validDirections = new String[]{"up", "up&left", "up&right", "down", "down&right", "down&left", "left", "right", "standing"};
-            validDirections = Arrays.stream(validDirections).filter(dir -> !dir.equals(lastCollisionDirection)).toArray(String[]::new);
-        } else {
-            validDirections = new String[]{"standing"};
-        }
+        List<String> validDirections = new ArrayList<>(Arrays.asList("up", "up&left", "up&right", "down", "down&left", "down&right", "left", "right", "standing"));
 
-        return validDirections[rand.nextInt(validDirections.length)];
+        // directions that can cause collision are removed
+        if (collisionUp) { validDirections.remove("up"); validDirections.remove("up&left"); validDirections.remove("up&right"); }
+        if (collisionDown) { validDirections.remove("down"); validDirections.remove("down&left"); validDirections.remove("down&right"); }
+        if (collisionLeft) { validDirections.remove("left"); validDirections.remove("up&left"); validDirections.remove("down&left"); }
+        if (collisionRight) { validDirections.remove("right"); validDirections.remove("up&right"); validDirections.remove("down&right"); }
+
+        // entity does not go into the direction that made him collide
+        validDirections.remove(lastCollisionDirection);
+
+        if (validDirections.isEmpty()) validDirections.add("standing"); // standing if no direction is available
+
+        return validDirections.get(rand.nextInt(validDirections.size()));
     }
 
     @Override

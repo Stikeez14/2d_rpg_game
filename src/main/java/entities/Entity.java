@@ -48,7 +48,7 @@ public abstract class Entity {
         screenX = frame.Window.getScreenWidth() / 2 - width / 2; // initialize screen center coordinates
         screenY = frame.Window.getScreenHeight() / 2 - height / 2;
         // initialize entity hitbox
-        hitbox = new Rectangle((int) (width / 3.5), (int) (height / 1.75), 13 * Settings.getScale(), 13 * Settings.getScale());
+        hitbox = new Rectangle((int) (width / 3.25), (int) (height / 1.75), 11 * Settings.getScale(), 13 * Settings.getScale());
     }
 
     /** MOVE ENTITY BASED ON DIRECTION & COLLISION DETECTION */
@@ -73,13 +73,6 @@ public abstract class Entity {
         }
     }
 
-    /** DRAW ENTITIES */
-    protected void draw(Graphics2D g2) {
-        BufferedImage image = getCurrentSprite(); // gets the sprite based on direction
-        g2.drawImage(image, screenX, screenY, width, height, null); // draws player on screen
-        if(drawHitbox) drawEntityHitbox(g2); // draws player hitbox with red
-    }
-
     /* gets the sprite of the entity based on the direction it's moving */
     BufferedImage getCurrentSprite() {
         return switch (direction) {
@@ -96,7 +89,7 @@ public abstract class Entity {
     public void updateHitbox() {
         width = Settings.getTileSize();
         height = Settings.getTileSize();
-        hitbox = new Rectangle((int) (width / 3.5), (int) (height / 1.75), 13 * Settings.getScale(), 13 * Settings.getScale());
+        hitbox = new Rectangle((int) (width / 3.25), (int) (height / 1.75), 11 * Settings.getScale(), 13 * Settings.getScale());
     }
 
     /* changes entity position in the right place when scaling changes */
@@ -133,7 +126,7 @@ public abstract class Entity {
 
     /** DRAW HITBOX */
     /* draws entity hitbox for testing collision */
-    private void drawEntityHitbox(Graphics2D g2){
+    void drawEntityHitbox(Graphics2D g2){
         g2.setColor(new Color(255, 0, 0, 100)); // semi-transparent red collision area
         g2.fillRect(getEntityScreenX() + hitbox.x, getEntityScreenY() + hitbox.y, hitbox.width, hitbox.height);
         g2.setColor(Color.RED); // hitbox  drawn with red
@@ -146,4 +139,5 @@ public abstract class Entity {
     /** ABSTRACT METHODS */
     protected abstract void setEntity();
     protected abstract void loadEntityVisuals();
+    protected abstract  void draw(Graphics2D g2);
 }

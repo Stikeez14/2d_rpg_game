@@ -2,17 +2,22 @@ package frame;
 
 import collision.Collision;
 import entities.Bandit;
+import entities.Entity;
 import entities.Player;
 import map.Map;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
+import java.util.*;
+import java.util.List;
 
 public class Panel extends JPanel implements Runnable {
 
     public Player player;
     public Bandit bandit;
+    List<Entity> entities = new ArrayList<>(); // List to store all entities
+
     Thread gameThread; //thread for the game loop
     public Map map = new Map(this);
     public Collision ck = new Collision(this);
@@ -33,6 +38,9 @@ public class Panel extends JPanel implements Runnable {
         player.setArmour(true,false,false);
 
         bandit = new Bandit(1600,1600,this);
+
+        entities.add(player);
+        entities.add(bandit);
     }
 
     public void startThread() {
@@ -148,4 +156,7 @@ public class Panel extends JPanel implements Runnable {
         g2.setColor(Color.WHITE); // fill the inside of the text with white
         g2.fill(textShape);
     }
+
+    /** GET ENTITIES */
+    public List<Entity> getEntities(){ return entities; }
 }
