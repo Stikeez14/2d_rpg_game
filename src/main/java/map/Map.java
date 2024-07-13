@@ -1,9 +1,12 @@
 package map;
 
+import entities.Entity;
 import frame.Panel;
 
 import java.awt.*;
 import java.io.*;
+import java.util.*;
+import java.util.List;
 
 public class Map {
 
@@ -81,13 +84,15 @@ public class Map {
         int playerY = gamePanel.player.getEntityY();
         int playerScreenX = gamePanel.player.getEntityScreenX();
         int playerScreenY = gamePanel.player.getEntityScreenY();
-        int playerBottomY = playerY + gamePanel.player.getHitbox().height;
 
         // range of tiles in player view to iterate
-        int startCol = Math.max(0, (playerX-playerScreenX)/tileSize - 3);
-        int endCol = Math.min(maxTilesHorizontally,(playerX+playerScreenX)/tileSize + 3);
-        int startRow = Math.max(0, (playerY-playerScreenY)/tileSize - 3);
-        int endRow = Math.min(maxTilesVertically,(playerY+playerScreenY)/tileSize + 3);
+        int screenTileCols = gamePanel.getWidth() / tileSize + 2;
+        int screenTileRows = gamePanel.getHeight() / tileSize + 2;
+
+        int startCol = Math.max(0, (playerX - playerScreenX) / tileSize - screenTileCols / 2);
+        int endCol = Math.min(maxTilesHorizontally, (playerX + playerScreenX) / tileSize + screenTileCols / 2 + 1);
+        int startRow = Math.max(0, (playerY - playerScreenY) / tileSize - screenTileRows / 2);
+        int endRow = Math.min(maxTilesVertically, (playerY + playerScreenY) / tileSize + screenTileRows / 2 + 1);
 
         // tile drawing and collision area update
         for (int worldRow = startRow; worldRow < endRow; worldRow++) {
@@ -104,31 +109,51 @@ public class Map {
                 if (tiles[tileNum].getTileCollision()) { // check if tile has collision area
                     tiles[tileNum].updateCollisionArea(scale); // update collision areas for all tiles
                     // draw tile collision box if the tile has collision
-                    if(drawCollision) drawCollisionAreas(g2,tileNum,screenX,screenY);
+                    if (drawCollision) drawCollisionAreas(g2, tileNum, screenX, screenY);
                 }
             }
         }
 
-        // player & upper part of tiles drawing
-        boolean playerDrawn = false; // ensures player is drawn only once
-        for (int worldRow = startRow; worldRow < endRow; worldRow++) {
-            for (int worldCol = startCol; worldCol < endCol; worldCol++) {
-                int tileNum = mapTileMatrix[worldCol][worldRow]; // tile number of current position
-                int worldX = worldCol * tileSize; // world x & y position of tile
-                int worldY = worldRow * tileSize;
-                int screenX = worldX - playerX + playerScreenX; // x & y position on screen for tile
-                int screenY = worldY - playerY + playerScreenY;
+        // get all entities and sort them by y coordinate
+        List<Entity> entities = gamePanel.getEntities();
+        entities.sort(Comparator.comparingInt(Entity::getEntityY));
 
-                if (tiles[tileNum].upperTileImage != null) { // if tiles have an upper image
-                    int tileMiddleY = worldY + tileSize / 2; // gets the tile middle y position
+        int viewWidth = gamePanel.getWidth();
+        int viewHeight = gamePanel.getHeight();
 
-                    if (playerBottomY <= tileMiddleY){ // when player is in the lower part of the tile => draw upper tile image
-                        g2.drawImage(tiles[tileNum].upperTileImage, screenX, screenY, tileSize, tileSize, null);
-                        if (drawCollision) drawCollisionAreas(g2,tileNum,screenX,screenY); }  // draw debug collision info
-                    else if (!playerDrawn) {
-                        gamePanel.player.draw(g2); // draw player
-                        gamePanel.bandit.draw(g2); // draw bandit
-                        playerDrawn = true;
+        for (Entity entity : entities) {
+            int entityX = entity.getEntityX();
+            int entityY = entity.getEntityY();
+            int entityScreenX = entityX - playerX + playerScreenX;
+            int entityScreenY = entityY - playerY + playerScreenY;
+            int entityBottomY = entityY + entity.getHitbox().height;
+
+            // entity drawn only in player view range
+            if (entityScreenX + entity.getHitbox().width > -tileSize * 2 && entityScreenX < viewWidth + tileSize * 2 &&
+                    entityScreenY + entity.getHitbox().height > -tileSize * 2 && entityScreenY < viewHeight + tileSize * 2) {
+
+                entity.draw(g2); // draw entity
+
+                // check tiles around the entity to draw upper parts
+                for (int offsetX = -1; offsetX <= 1; offsetX++) {
+                    for (int offsetY = -1; offsetY <= 1; offsetY++) {
+                        int tileCol = (entityX / tileSize) + offsetX;
+                        int tileRow = (entityY / tileSize) + offsetY;
+
+                        if (tileCol >= 0 && tileCol < maxTilesHorizontally && tileRow >= 0 && tileRow < maxTilesVertically) {
+                            int tileNum = mapTileMatrix[tileCol][tileRow];
+                            int worldX = tileCol * tileSize;
+                            int worldY = tileRow * tileSize;
+                            int screenX = worldX - playerX + playerScreenX;
+                            int screenY = worldY - playerY + playerScreenY;
+                            int tileMiddleY = worldY + tileSize / 2;
+
+                            // draw upper part of the tile if the entity is in the correct position
+                            if (tiles[tileNum].upperTileImage != null && entityBottomY <= tileMiddleY) {
+                                g2.drawImage(tiles[tileNum].upperTileImage, screenX, screenY, tileSize, tileSize, null);
+                                if (drawCollision) drawCollisionAreas(g2, tileNum, screenX, screenY);
+                            }
+                        }
                     }
                 }
             }

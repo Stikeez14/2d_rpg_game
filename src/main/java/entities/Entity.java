@@ -139,5 +139,5 @@ public abstract class Entity {
     /** ABSTRACT METHODS */
     protected abstract void setEntity();
     protected abstract void loadEntityVisuals();
-    protected abstract  void draw(Graphics2D g2);
+    public abstract void draw(Graphics2D g2);
 }

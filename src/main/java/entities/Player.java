@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 
 public class Player extends Entity {
@@ -61,7 +62,11 @@ public class Player extends Entity {
         setDrawStatus(); // update flags for drawing information on screen
 
         gamePanel.ck.checkTileCollision(this); // check if the player is colliding with the tiles collision areas
-        gamePanel.ck.checkEntityCollision(this, gamePanel.bandit); // check if the player is colliding with the bandit
+
+        List<Entity> entities = gamePanel.getEntities();
+        for (Entity entity : entities) {
+            gamePanel.ck.checkEntityCollision(this, entity); // check if the player is colliding with other entities
+        }
         moveEntity(); // move the player based on collision flags
 
         updateSpriteFlag(); // update sprite flag based on counter
@@ -69,7 +74,7 @@ public class Player extends Entity {
 
     @Override
     protected void moveEntity() {
-        super.moveEntity(); // Call the parent method to avoid code duplication
+        super.moveEntity(); // call the parent method to avoid code duplication
     }
 
     @Override

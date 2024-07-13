@@ -31,8 +31,12 @@ public class Bandit extends Entity {
     @Override
     public void setEntity() {
 
-        gamePanel.ck.checkTileCollision(this);
-        gamePanel.ck.checkEntityCollision(this, gamePanel.player);
+        gamePanel.ck.checkTileCollision(this); // check if the bandit is colliding with the tile collision areas
+
+        List<Entity> entities = gamePanel.getEntities();
+        for (Entity entity : entities) {
+            gamePanel.ck.checkEntityCollision(this, entity); // check if the bandit is colliding with other entities
+        }
         moveEntity();
 
         updateHitbox();
@@ -91,7 +95,7 @@ public class Bandit extends Entity {
 
         if (collided || countCooldown == 0) {  // if the entity collides or  the cooldown ends
             // gen random number between 0 & 1
-            if (rand.nextDouble() < 0.5) direction = "standing";  // 50 % chance to be in standing mode
+            if (rand.nextDouble() < 0.65) direction = "standing";  // 65 % chance to be in standing mode
             else direction = getDirection(); // get new direction
             // reset cooldown timer to a random value
             countCooldown = MIN_DIRECTION_CHANGE_INTERVAL + rand.nextInt(MAX_DIRECTION_CHANGE_INTERVAL - MIN_DIRECTION_CHANGE_INTERVAL + 1);
