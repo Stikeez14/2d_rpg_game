@@ -126,11 +126,11 @@ public class Map {
             int entityY = entity.getEntityY();
             int entityScreenX = entityX - playerX + playerScreenX;
             int entityScreenY = entityY - playerY + playerScreenY;
-            int entityBottomY = entityY + entity.getHitbox().height;
+            int entityBottomY = entityY + entity.getCollisionBox().height;
 
             // entity drawn only in player view range
-            if (entityScreenX + entity.getHitbox().width > -tileSize * 2 && entityScreenX < viewWidth + tileSize * 2 &&
-                    entityScreenY + entity.getHitbox().height > -tileSize * 2 && entityScreenY < viewHeight + tileSize * 2) {
+            if (entityScreenX + entity.getCollisionBox().width > -tileSize * 2 && entityScreenX < viewWidth + tileSize * 2 &&
+                    entityScreenY + entity.getCollisionBox().height > -tileSize * 2 && entityScreenY < viewHeight + tileSize * 2) {
 
                 entity.draw(g2); // draw entity
 

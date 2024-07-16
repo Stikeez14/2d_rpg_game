@@ -5,13 +5,11 @@ import map.Map;
 import map.Settings;
 import inputs.KeyboardKeys;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 public class Player extends Entity {
 
@@ -25,14 +23,20 @@ public class Player extends Entity {
     private BufferedImage walkRightEternalHelmet, walkRight1EternalChestPlate, walkRight2EternalChestPlate, walkRight1EternalLeggings, walkRight2EternalLeggings;
 
     public boolean isSprinting = false; // flag used to determine player sprinting
+
     // timestamps for sprint start & end
     private long sprintStartTime = 0;
     private long lastSprintTime = 0;
+
+    // timestamps for attack start & end
+    private long attackStartTime = 0;
+    private long lastAttackTime = 0;
 
     // flags to check equipped armour
     private boolean hasHelmet = false;
     private boolean hasChestPlate = false;
     private boolean hasLeggings = false;
+    private boolean hasWeapon = false;
 
     // track current & previous state of 'F3' key
     private boolean currentF3Pressed = false;
@@ -44,12 +48,13 @@ public class Player extends Entity {
 
     private static boolean isDrawInfo = false; // flag used to determine if debug info should be drawn on screen
 
-    public Player(int x, int y, Panel gamePanel) {
+    public Player(int x, int y, Panel gamePanel, String playerType) {
         super(x, y, gamePanel);
         gamePanel.addKeyListener(key);
         gamePanel.setFocusable(true); // helps with receiving key events
         gamePanel.requestFocusInWindow();
-        loadEntityVisuals();
+        loadEntityVisuals(playerType);
+        health = 20; // starting health is 20
     }
 
     @Override
@@ -57,16 +62,28 @@ public class Player extends Entity {
 
         sprintAndScale(); // handles the sprint logic & scale change based on it
 
-        getDirection(); // update player direction
+        setDirection(); // update player direction
+
+        handleAttack(); // attack direction
+
+        if(isAttacking) { // if the player is attacking will check collision between his attackBox and all entities HitBoxes
+            for (Entity entity : gamePanel.getEntities()) {
+                if (!entity.equals(gamePanel.player)) {
+                    gamePanel.ck.checkEntityAttack(this, entity);
+                }
+            }
+        }
+
+        checkEntityHealth(this); // checks health
 
         setDrawStatus(); // update flags for drawing information on screen
 
         gamePanel.ck.checkTileCollision(this); // check if the player is colliding with the tiles collision areas
 
-        List<Entity> entities = gamePanel.getEntities();
-        for (Entity entity : entities) {
+        for (Entity entity : gamePanel.getEntities()) {
             gamePanel.ck.checkEntityCollision(this, entity); // check if the player is colliding with other entities
         }
+
         moveEntity(); // move the player based on collision flags
 
         updateSpriteFlag(); // update sprite flag based on counter
@@ -82,7 +99,7 @@ public class Player extends Entity {
         BufferedImage image = getCurrentSprite(); // gets the sprite based on direction
         g2.drawImage(image, getEntityScreenX(), getEntityScreenY(), width, height, null); // draws player on screen
 
-        drawPlayerArmour(g2); // draws player on top of the player
+        drawPlayerEquipment(g2); // draws player on top of the player
 
         if(isDrawInfo){ // draw debug info only when 'F2' is pressed
             gamePanel.drawInfo(g2, "fps: ", gamePanel.getFPS(), 20, 40); // draws the fps
@@ -90,52 +107,56 @@ public class Player extends Entity {
             gamePanel.drawInfo(g2, "x: ",  getOriginalX(),20,130); // draws the player x coordinate in the world
             gamePanel.drawInfo(g2, "y: ",  getOriginalY(),20,175); // draws the player y coordinate in the world
         }
-        if(drawHitbox) drawEntityHitbox(g2); // draws player hitbox with red
+        if(drawBoxes) { // draws player boxes
+            drawEntityBox(g2, collisionBox, Color.red);
+            drawEntityBox(g2, verticalHitBox, Color.blue);
+            drawEntityBox(g2, horizontalHitBox, Color.blue);
+            if(attackBox !=null) drawEntityBox(g2, attackBox, Color.yellow);
+        }
     }
 
     @Override
-    public void loadEntityVisuals() {
+    public void loadEntityVisuals(String playerType) {
         try {
             /* PLAYER DEFAULT SKIN */
-            standing = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "standingPlayer.png")));
-            walkDown1 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkDown1.png")));
-            walkDown2 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkDown2.png")));
-            walkUp1 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkUp1.png")));
-            walkUp2 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkUp2.png")));
-            walkLeft1 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkLeft1.png")));
-            walkLeft2 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkLeft2.png")));
-            walkRight1 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkRight1.png")));
-            walkRight2 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "malePlayer" + File.separator + "walkRight2.png")));
+            standing = loadImage("malePlayer" + File.separator + "standing.png");
+            walkDown1 = loadImage("malePlayer" + File.separator + "walkDown1.png");
+            walkDown2 = loadImage("malePlayer" + File.separator + "walkDown2.png");
+            walkUp1 = loadImage("malePlayer" + File.separator + "walkUp1.png");
+            walkUp2 = loadImage("malePlayer" + File.separator + "walkUp2.png");
+            walkLeft1 = loadImage("malePlayer" + File.separator + "walkLeft1.png");
+            walkLeft2 = loadImage("malePlayer" + File.separator + "walkLeft2.png");
+            walkRight1 = loadImage("malePlayer" + File.separator + "walkRight1.png");
+            walkRight2 = loadImage("malePlayer" + File.separator + "walkRight2.png");
 
             /* ETERNAL ARMOUR SKIN */
-            standingEternalHelmet = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "standing" + File.separator + "standingEternalHelmet.png")));
-            standingEternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "standing" + File.separator + "standingEternalChestPlate.png")));
-            standingEternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "standing" + File.separator + "standingEternalLeggings.png")));
+            standingEternalHelmet = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "standing" + File.separator + "standingEternalHelmet.png");
+            standingEternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "standing" + File.separator + "standingEternalChestPlate.png");
+            standingEternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "standing" + File.separator + "standingEternalLeggings.png");
 
-            walkUpEternalHelmet = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUpEternalHelmet.png")));
-            walkUp1EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp1EternalChestPlate.png")));
-            walkUp2EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp2EternalChestPlate.png")));
-            walkUp1EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp1EternalLeggings.png")));
-            walkUp2EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp2EternalLeggings.png")));
+            walkUpEternalHelmet = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUpEternalHelmet.png");
+            walkUp1EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp1EternalChestPlate.png");
+            walkUp2EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp2EternalChestPlate.png");
+            walkUp1EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp1EternalLeggings.png");
+            walkUp2EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkUp" + File.separator + "walkUp2EternalLeggings.png");
 
-            walkDownEternalHelmet = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDownEternalHelmet.png")));
-            walkDown1EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown1EternalChestPlate.png")));
-            walkDown2EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown2EternalChestPlate.png")));
-            walkDown1EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown1EternalLeggings.png")));
-            walkDown2EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown2EternalLeggings.png")));
+            walkDownEternalHelmet = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDownEternalHelmet.png");
+            walkDown1EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown1EternalChestPlate.png");
+            walkDown2EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown2EternalChestPlate.png");
+            walkDown1EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown1EternalLeggings.png");
+            walkDown2EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkDown" + File.separator + "walkDown2EternalLeggings.png");
 
-            walkLeftEternalHelmet = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeftEternalHelmet.png")));
-            walkLeft1EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft1EternalChestPlate.png")));
-            walkLeft2EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft2EternalChestPlate.png")));
-            walkLeft1EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft1EternalLeggings.png")));
-            walkLeft2EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft2EternalLeggings.png")));
+            walkLeftEternalHelmet = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeftEternalHelmet.png");
+            walkLeft1EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft1EternalChestPlate.png");
+            walkLeft2EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft2EternalChestPlate.png");
+            walkLeft1EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft1EternalLeggings.png");
+            walkLeft2EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkLeft" + File.separator + "walkLeft2EternalLeggings.png");
 
-            walkRightEternalHelmet = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRightEternalHelmet.png")));
-            walkRight1EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight1EternalChestPlate.png")));
-            walkRight2EternalChestPlate = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight2EternalChestPlate.png")));
-            walkRight1EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight1EternalLeggings.png")));
-            walkRight2EternalLeggings = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + "equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight2EternalLeggings.png")));
-
+            walkRightEternalHelmet = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRightEternalHelmet.png");
+            walkRight1EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight1EternalChestPlate.png");
+            walkRight2EternalChestPlate = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight2EternalChestPlate.png");
+            walkRight1EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight1EternalLeggings.png");
+            walkRight2EternalLeggings = loadImage("equipment" + File.separator + "armours" + File.separator + "eternal" + File.separator + "walkRight" + File.separator + "walkRight2EternalLeggings.png");
         } catch (IOException e) {
             throw new RuntimeException("Failed to load Player Visuals!", e);
         }
@@ -146,8 +167,8 @@ public class Player extends Entity {
         int runSpeed;
 
         // normal speed is based on scale (odd | even)
-        if(Settings.getScale() % 2 == 0) Speed = Settings.getScale() / 2;
-        else Speed = (Settings.getScale() + 1) / 2;
+        if(Settings.getScale() % 2 == 0) Speed = Settings.getScale() / 3;
+        else Speed = (Settings.getScale() + 1) / 3;
         runSpeed = Speed + 1;
 
         long currentTime = System.currentTimeMillis();
@@ -167,7 +188,7 @@ public class Player extends Entity {
                 // adjust player position to be the same as before scaling
                 for(int i=0; i<gamePanel.getEntities().size();i++) gamePanel.getEntities().get(i).adjustPosition(oldScale,Settings.getScale());
 
-                updateHitbox();  // scale entity hitbox
+                updateHitbox();  // scale entity collisionBox
                 lastSprintTime = currentTime; // get the time when the sprint ended
             }
         } else {
@@ -188,7 +209,7 @@ public class Player extends Entity {
                 // adjust player position to be the same as before scaling
                 for(int i=0; i<gamePanel.getEntities().size();i++) gamePanel.getEntities().get(i).adjustPosition(oldScale,Settings.getScale());
 
-                updateHitbox(); // scale entity hitbox
+                updateHitbox(); // scale entity collisionBox
                 sprintStartTime = currentTime;
                 Speed = runSpeed; // update speed
             }
@@ -196,29 +217,109 @@ public class Player extends Entity {
     }
 
     /** GET DIRECTION BASED ON PRESSED KEYS */
-    private void getDirection(){ // determine direction based on pressed keys
-        if (key.upPressed) {
-            if (key.leftPressed) {
-                direction = "up&left";
+    private void setDirection() {
+        direction = "standing"; // direction initialized with "standing"
+
+        long currentTime = System.currentTimeMillis();
+        long attackCooldown = 2000;
+
+        /* ATTACK DIRECTIONS */
+        if (key.spacePressed && (currentTime - lastAttackTime >= attackCooldown)) {
+            // if space is pressed & cooldown is attack cooldown is over, the player can attack again
+            isAttacking = true; // activate flag
+            lastAttackTime = currentTime;
+
+            if (key.upPressed) {
+                if (key.leftPressed) {
+                    direction = "attackUp&Left";
+                } else if (key.rightPressed) {
+                    direction = "attackUp&Right";
+                } else {
+                    direction = "attackUp";
+                }
+            } else if (key.downPressed) {
+                if (key.leftPressed) {
+                    direction = "attackDown&Left";
+                } else if (key.rightPressed) {
+                    direction = "attackDown&Right";
+                } else {
+                    direction = "attackDown";
+                }
+            } else if (key.leftPressed) {
+                direction = "attackLeft";
             } else if (key.rightPressed) {
-                direction = "up&right";
+                direction = "attackRight";
             } else {
-                direction = "up";
+                direction = "attackDown"; // if only space is pressed, the default attack is "attackDown"
             }
-        } else if (key.downPressed) {
-            if (key.leftPressed) {
-                direction = "down&left";
+        } /* MOVEMENT DIRECTIONS */
+        else {
+
+            if (key.upPressed) {
+                if (key.leftPressed) {
+                    direction = "Up&Left";
+                } else if (key.rightPressed) {
+                    direction = "Up&Right";
+                } else {
+                    direction = "Up";
+                }
+            } else if (key.downPressed) {
+                if (key.leftPressed) {
+                    direction = "Down&Left";
+                } else if (key.rightPressed) {
+                    direction = "Down&Right";
+                } else {
+                    direction = "Down";
+                }
+            } else if (key.leftPressed) {
+                direction = "Left";
             } else if (key.rightPressed) {
-                direction = "down&right";
-            } else {
-                direction = "down";
+                direction = "Right";
             }
-        } else if (key.leftPressed) {
-            direction = "left";
-        } else if (key.rightPressed) {
-            direction = "right";
+        }
+    }
+
+    /** CREATES ATTACK BOXES BASED ON DIRECTION */
+    private void handleAttack() {
+        if (isAttacking) {
+            // start the attack
+            if (attackStartTime == 0) attackStartTime = System.currentTimeMillis();
+            long elapsedTime = System.currentTimeMillis() - attackStartTime;
+
+            long attackDuration = 1000; // 1 sec
+
+            if (elapsedTime > attackDuration) {
+                isAttacking = false; // deactivate flag
+                attackBox = null;  // clear attackBox
+                attackStartTime = 0; // reset startTime
+            } else {
+                // attackBox coordinates for starting in the middle of the vertical or horizontal hit boxes
+                int verticalCenterX = verticalHitBox.x + verticalHitBox.width / 2;
+                int verticalCenterY = verticalHitBox.y + verticalHitBox.height / 2;
+                int horizontalCenterX = horizontalHitBox.x + horizontalHitBox.width / 2;
+                int horizontalCenterY = horizontalHitBox.y + horizontalHitBox.height / 2;
+
+                switch (direction) {
+                    case "attackUp":
+                        attackBox = new Rectangle(verticalCenterX - 11 * Settings.getScale() / 2, verticalCenterY - 20 * Settings.getScale(), 11 * Settings.getScale(), 20 * Settings.getScale());
+                        break;
+                    case "attackDown":
+                        attackBox = new Rectangle(verticalCenterX - 11 * Settings.getScale() / 2, verticalCenterY, 11 * Settings.getScale(), 20 * Settings.getScale());
+                        break;
+                    case "attackLeft":
+                        attackBox = new Rectangle(horizontalCenterX - 20 * Settings.getScale(), horizontalCenterY - 11 * Settings.getScale() / 2, 20 * Settings.getScale(), 11 * Settings.getScale());
+                        break;
+                    case "attackRight":
+                        attackBox = new Rectangle(horizontalCenterX, horizontalCenterY - 11 * Settings.getScale() / 2, 20 * Settings.getScale(), 11 * Settings.getScale());
+                        break;
+                    default:
+                        attackBox = null;
+                        break;
+                }
+            }
         } else {
-            direction = "standing";
+            attackBox = null; // clear attackBox if not attacking
+            attackStartTime = 0; // reset startTime
         }
     }
 
@@ -240,6 +341,7 @@ public class Player extends Entity {
         setIsDrawInfo(currentF2Pressed);
     }
 
+    /** UPDATES THE FLAG RESPONSIBLE FOR SPRITE ANIMATIONS */
     private void updateSpriteFlag() {
         spriteCounter++;
         int spriteThreshold = isSprinting ? 10 : 20; // faster sprite change when sprinting
@@ -250,53 +352,62 @@ public class Player extends Entity {
         }
     }
 
-    /** DRAW ARMOUR */
-    private void drawPlayerArmour(Graphics2D g2){
+    /** DRAW EQUIPMENT */
+    private void drawPlayerEquipment(Graphics2D g2){
         BufferedImage helmet = null;
         BufferedImage chestPlate = null;
         BufferedImage leggings = null;
+        BufferedImage weapon = null;
 
+        if(!isAttacking){
         switch (direction) { // draws player armour based on direction and sprite flag
-            case "down", "down&left", "down&right":
+            case "Down", "Down&Left", "Down&Right":
                 if (hasHelmet) helmet = walkDownEternalHelmet;
                 if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkDown1EternalChestPlate : walkDown2EternalChestPlate;
                 if (hasLeggings) leggings = (spriteFlag == 1) ? walkDown1EternalLeggings : walkDown2EternalLeggings;
+                if (hasWeapon) weapon = (spriteFlag == 1) ? walkDown1Bat : standingBat;
                 break;
-            case "up", "up&left", "up&right":
+            case "Up", "Up&Left", "Up&Right":
                 if (hasHelmet) helmet = walkUpEternalHelmet;
                 if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkUp1EternalChestPlate : walkUp2EternalChestPlate;
                 if (hasLeggings) leggings = (spriteFlag == 1) ? walkUp1EternalLeggings : walkUp2EternalLeggings;
+                if (hasWeapon) weapon = (spriteFlag == 1) ? walkUp1Bat : walkUp2Bat;
                 break;
-            case "left":
+            case "Left":
                 if (hasHelmet) helmet = walkLeftEternalHelmet;
                 if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkLeft1EternalChestPlate : walkLeft2EternalChestPlate;
                 if (hasLeggings) leggings = (spriteFlag == 1) ? walkLeft1EternalLeggings : walkLeft2EternalLeggings;
+                if (hasWeapon) weapon = (spriteFlag == 1) ? walkLeft1Bat : walkLeft2Bat;
                 break;
-            case "right":
+            case "Right":
                 if (hasHelmet) helmet = walkRightEternalHelmet;
                 if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkRight1EternalChestPlate : walkRight2EternalChestPlate;
                 if (hasLeggings) leggings = (spriteFlag == 1) ? walkRight1EternalLeggings : walkRight2EternalLeggings;
+                if (hasWeapon) weapon = (spriteFlag == 1) ? walkRight1Bat : walkRight2Bat;
                 break;
             case "standing":
                 if (hasHelmet) helmet = standingEternalHelmet;
                 if (hasChestPlate) chestPlate = standingEternalChestPlate;
                 if (hasLeggings) leggings = standingEternalLeggings;
+                if (hasWeapon) weapon = standingBat;
                 break;
-        }
+        }}
 
         if (helmet != null) g2.drawImage(helmet, getEntityScreenX(), getEntityScreenY(), getEntityWidth(), getEntityHeight(), null);
         if (chestPlate != null) g2.drawImage(chestPlate, getEntityScreenX(), getEntityScreenY(), getEntityWidth(), getEntityHeight(), null);
         if (leggings != null) g2.drawImage(leggings, getEntityScreenX(), getEntityScreenY(), getEntityWidth(), getEntityHeight(), null);
+        if (weapon != null) g2.drawImage(weapon, getEntityScreenX(), getEntityScreenY(), getEntityWidth(), getEntityHeight(), null);
     }
 
-    /* JUST FOR TESTING ARMOUR */
-    public void setArmour(boolean hasHelmet, boolean hasChestPlate, boolean hasLeggings) {
+    /* JUST FOR TESTING EQUIPMENT */
+    public void setEquipment(boolean hasHelmet, boolean hasChestPlate, boolean hasLeggings, boolean hasWeapon) {
         this.hasHelmet=hasHelmet;
         this.hasChestPlate=hasChestPlate;
         this.hasLeggings=hasLeggings;
+        this.hasWeapon=hasWeapon;
     }
 
     /** DRAW INFORMATION */
     /* flag for debug information status */
-    private void setIsDrawInfo(boolean status){ isDrawInfo= status; } // activated if player presses 'F2'
+    private void setIsDrawInfo(boolean status){ isDrawInfo = status; } // activated if player presses 'F2'
 }

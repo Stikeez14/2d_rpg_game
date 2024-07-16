@@ -9,14 +9,15 @@ import map.Map;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.font.FontRenderContext;
-import java.util.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Panel extends JPanel implements Runnable {
 
     public Player player;
     public Bandit bandit1, bandit2,bandit3, bandit4;
-    List<Entity> entities = new ArrayList<>(); // List to store all entities
+
+    public List<Entity> entities; // list for storing all entities
 
     Thread gameThread; //thread for the game loop
     public Map map = new Map(this);
@@ -31,20 +32,22 @@ public class Panel extends JPanel implements Runnable {
     private int frames = 0;
 
     public Panel() {
+        entities = new CopyOnWriteArrayList<>();
+
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
 
-        player = new Player(1500, 1500, this);
-        player.setArmour(true,false,false);
+        player = new Player(1500, 1500, this,"malePlayer");
+        player.setEquipment(false,false,false, true);
 
-        bandit1 = new Bandit(1600,1600,this);
-        bandit2 = new Bandit(1500,1600,this);
-        bandit3 = new Bandit(1500,1500,this);
-        bandit4 = new Bandit(1600,1700,this);
+        bandit1 = new Bandit(1600,1600,this, "bandit", "baseballBat");
+        bandit2 = new Bandit(1500,1600,this,"bandit", null);
+        bandit3 = new Bandit(1500,1500,this,"corruptedBandit", "dagger");
+        bandit4 = new Bandit(1600,1700,this,"corruptedBandit", null);
 
-        entities.add(player);
-        entities.add(bandit1); entities.add(bandit2);
-        entities.add(bandit3); entities.add(bandit4);
+        addEntity(player);
+        addEntity(bandit1); addEntity(bandit2);
+        addEntity(bandit3); addEntity(bandit4);
     }
 
     public void startThread() {
@@ -93,12 +96,7 @@ public class Panel extends JPanel implements Runnable {
 
 
     public void update() {
-        player.setEntity(); // updates the player
-        // update bandit entities
-        bandit1.setEntity();
-        bandit2.setEntity();
-        bandit3.setEntity();
-        bandit4.setEntity();
+        for (Entity entity : entities) entity.setEntity();
     }
 
     public void paintComponent (Graphics g) {
@@ -165,6 +163,15 @@ public class Panel extends JPanel implements Runnable {
         g2.fill(textShape);
     }
 
-    /** GET ENTITIES */
+    /** ENTITY HANDLING */
+    /* add entity to the list */
+    public void addEntity(Entity entity){
+        if(entity == null) return;
+        if(entities.contains(entity)) return;
+        entities.add(entity);
+    }
+    /* remove entity from the list */
+    public void removeEntity(Entity entity){ entities.remove(entity); }
+    /* get entities list */
     public List<Entity> getEntities(){ return entities; }
 }

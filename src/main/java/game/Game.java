@@ -9,7 +9,7 @@ public class Game {
 
     public static void main (String[] args){
 
-        System.out.println("time bound ~ 0.14.3\n");
+        System.out.println("time bound ~ 0.15\n");
 
         String mapPath = "src" + File.separator + "main" + File.separator + "resources" + File.separator + "map" + File.separator + "mapData.txt";
         DataMatrix genData = new DataMatrix(mapPath);

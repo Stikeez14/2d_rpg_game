@@ -3,13 +3,21 @@ package entities;
 import frame.Panel;
 import map.Settings;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
 
 public abstract class Entity {
 
     // sprites for diff states & directions of the entity
     protected BufferedImage standing, walkDown1, walkDown2, walkUp1, walkUp2, walkLeft1, walkLeft2, walkRight1, walkRight2;
+
+    // sprites for weapons directions
+    protected BufferedImage standingBat, walkLeft1Bat, walkLeft2Bat, walkRight1Bat, walkRight2Bat, walkUp1Bat, walkUp2Bat, walkDown1Bat;
+    protected BufferedImage standingDag, walkLeft1Dag, walkLeft2Dag, walkRight1Dag, walkRight2Dag, walkUp1Dag, walkUp2Dag, walkDown1Dag;
 
     private int originalX, originalY; // x & y coordinates not adjusted by scaling
 
@@ -20,7 +28,12 @@ public abstract class Entity {
 
     int width, height; // tile dimensions
 
-    protected Rectangle hitbox; // entity hitbox for checking collision
+    protected Rectangle collisionBox; // entity collisionBox for checking collision
+    protected Rectangle verticalHitBox;
+    protected Rectangle horizontalHitBox;
+
+    protected Rectangle attackBox;
+
     protected String direction; // direction the entity is moving towards (based on keyboard keys)
 
     protected int Speed; // entity movements speed (affected by scaling)
@@ -31,11 +44,15 @@ public abstract class Entity {
     protected int spriteCounter = 0; // counter and flag for sprite animation
     protected int spriteFlag = 1;
 
-    boolean drawHitbox = false; // flag used to draw the entity hitbox on screen
+    boolean drawBoxes = false; // flag used to draw the entity collisionBox on screen
 
-    Panel gamePanel;
+    Panel gamePanel; // reference to Panel
 
-    Entity(int x, int y, Panel gamePanel) {
+    protected boolean isAttacking = false; // flag activated when the entity is attacking
+
+    public double health; // entity health points
+
+    Entity (int x, int y, Panel gamePanel) {
         this.x = x;
         this.y = y;
         this.originalX=x;
@@ -47,49 +64,63 @@ public abstract class Entity {
 
         screenX = frame.Window.getScreenWidth() / 2 - width / 2; // initialize screen center coordinates
         screenY = frame.Window.getScreenHeight() / 2 - height / 2;
-        // initialize entity hitbox
-        hitbox = new Rectangle((int) (width / 3.25), (int) (height / 1.75), 11 * Settings.getScale(), 13 * Settings.getScale());
+
+        // entity boxes
+        collisionBox = new Rectangle((int) (width / 3.25), (int) (height / 1.75), 11 * Settings.getScale(), 13 * Settings.getScale());
+        verticalHitBox = new Rectangle((int) (width / 3.25), 2 * Settings.getScale(), 11 * Settings.getScale(), 30 * Settings.getScale());
+        horizontalHitBox = new Rectangle((int) (width / 4.10), (int) (height / 2.75), 16 * Settings.getScale(), 10 * Settings.getScale());
+
+        loadEntityWeapons();
     }
 
     /** MOVE ENTITY BASED ON DIRECTION & COLLISION DETECTION */
     protected void moveEntity() {
-        // collision detection & movement { -> x & y are used for moving the entity on the map
-                                       // { -> originalX & original Y are used for drawing entity position on the map
-        if (direction.contains("up") && !collisionUp) {
-            y -= Speed;
-            originalY -= Speed;
+        // { -> x & y are used for moving the entity on the map
+        // { -> originalX & original Y are used for drawing entity position on the map
+        int currentSpeed = isAttacking ? 1 : Speed; // while attacking speed is reduced
+
+        // Collision detection & movement
+        if (direction.contains("Up") && !collisionUp) {
+            y -= currentSpeed;
+            originalY -= currentSpeed;
         }
-        if (direction.contains("down") && !collisionDown) {
-            y += Speed;
-            originalY += Speed;
+        if (direction.contains("Down") && !collisionDown) {
+            y += currentSpeed;
+            originalY += currentSpeed;
         }
-        if (direction.contains("left") && !collisionLeft) {
-            x -= Speed;
-            originalX -= Speed;
+        if (direction.contains("Left") && !collisionLeft) {
+            x -= currentSpeed;
+            originalX -= currentSpeed;
         }
-        if (direction.contains("right") && !collisionRight) {
-            x += Speed;
-            originalX += Speed;
+        if (direction.contains("Right") && !collisionRight) {
+            x += currentSpeed;
+            originalX += currentSpeed;
         }
     }
 
     /* gets the sprite of the entity based on the direction it's moving */
     BufferedImage getCurrentSprite() {
+
+        if(!isAttacking){
         return switch (direction) {
-            case "down", "down&left", "down&right" -> (spriteFlag == 1) ? walkDown1 : walkDown2;
-            case "up", "up&left", "up&right" -> (spriteFlag == 1) ? walkUp1 : walkUp2;
-            case "left" -> (spriteFlag == 1) ? walkLeft1 : walkLeft2;
-            case "right" -> (spriteFlag == 1) ? walkRight1 : walkRight2;
+            case "Down", "Down&Left", "Down&Right" -> (spriteFlag == 1) ? walkDown1 : walkDown2;
+            case "Up", "Up&Left", "Up&Right" -> (spriteFlag == 1) ? walkUp1 : walkUp2;
+            case "Left" -> (spriteFlag == 1) ? walkLeft1 : walkLeft2;
+            case "Right" -> (spriteFlag == 1) ? walkRight1 : walkRight2;
             default -> standing;
         };
+        }
+        else return standing;
     }
 
     /** HITBOX & POSITION UPDATE */
-    /* updates hitbox position based on scale */
+    /* updates collisionBox position based on scale */
     public void updateHitbox() {
         width = Settings.getTileSize();
         height = Settings.getTileSize();
-        hitbox = new Rectangle((int) (width / 3.25), (int) (height / 1.75), 11 * Settings.getScale(), 13 * Settings.getScale());
+        collisionBox = new Rectangle((int) (width / 3.25), (int) (height / 1.75), 11 * Settings.getScale(), 13 * Settings.getScale());
+        verticalHitBox = new Rectangle((int) (width / 3.25), Settings.getScale(), 11 * Settings.getScale(), 30 * Settings.getScale());
+        horizontalHitBox = new Rectangle((int) (width / 4.10), (int) (height / 2.75), 16 * Settings.getScale(), 10 * Settings.getScale());
     }
 
     /* changes entity position in the right place when scaling changes */
@@ -120,24 +151,65 @@ public abstract class Entity {
     public int getEntityHeight(){ return height; }
     /* entity Speed affected by scaling */
     public int getSpeed() { return Speed; }
-    /* entity hitbox affected by scaling */
-    public Rectangle getHitbox() { return hitbox; }
+    /* direction of the entity */
+    public String getDirection(){ return direction; }
+    /* entity collision and hit boxes */
+    public Rectangle getCollisionBox() { return collisionBox; }
+    public Rectangle getVerticalHitBox() { return verticalHitBox; }
+    public Rectangle getHorizontalHitBox() { return horizontalHitBox; }
 
-
-    /** DRAW HITBOX */
-    /* draws entity hitbox for testing collision */
-    void drawEntityHitbox(Graphics2D g2){
-        g2.setColor(new Color(255, 0, 0, 100)); // semi-transparent red collision area
-        g2.fillRect(getEntityScreenX() + hitbox.x, getEntityScreenY() + hitbox.y, hitbox.width, hitbox.height);
-        g2.setColor(Color.RED); // hitbox  drawn with red
-        g2.drawRect(getEntityScreenX() + hitbox.x, getEntityScreenY() + hitbox.y, hitbox.width, hitbox.height);
+    /** DRAW ENTITY BOX */
+    void drawEntityBox(Graphics2D g2, Rectangle box, Color color){
+        g2.setColor(color); // color for the rectangle box
+        g2.drawRect(getEntityScreenX() + box.x, getEntityScreenY() + box.y, box.width, box.height);
     }
 
-    /* sets hitbox drawing status */
-    protected void setDrawHitboxStatus(boolean status){ drawHitbox = status; }
+    /* sets collisionBox drawing status */
+    protected void setDrawHitboxStatus(boolean status){ drawBoxes = status; }
+
+    /** LOADS ALL WEAPONS & SPRITES */
+    private void loadEntityWeapons() {
+
+        // weapon paths
+        String baseballBatPath = "equipment" + File.separator + "weapons" + File.separator + "baseballBat" + File.separator;
+        String daggerPath = "equipment" + File.separator + "weapons" + File.separator + "dagger" + File.separator;
+
+        try {
+            standingBat = loadImage(baseballBatPath + "standing.png");
+            walkLeft2Bat = loadImage(baseballBatPath + "walkLeft2.png");
+            walkLeft1Bat = loadImage(baseballBatPath + "walkLeft1.png");
+            walkRight2Bat = loadImage(baseballBatPath+ "walkRight2.png");
+            walkRight1Bat = loadImage(baseballBatPath + "walkRight1.png");
+            walkUp2Bat = loadImage(baseballBatPath + "walkUp2.png");
+            walkUp1Bat = loadImage(baseballBatPath + "walkUp1.png");
+            walkDown1Bat = loadImage(baseballBatPath + "walkDown1.png");
+
+            standingDag= loadImage(daggerPath + "standing.png");
+            walkLeft2Dag = loadImage(daggerPath + "walkLeft2.png");
+            walkLeft1Dag = loadImage(daggerPath + "walkLeft1.png");
+            walkRight2Dag = loadImage(daggerPath + "walkRight2.png");
+            walkRight1Dag = loadImage(daggerPath + "walkRight1.png");
+            walkUp2Dag = loadImage(daggerPath + "walkUp2.png");
+            walkUp1Dag = loadImage(daggerPath + "walkUp1.png");
+            walkDown1Dag = loadImage(daggerPath + "walkDown1.png");
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load Bandit Visuals!", e);
+        }
+    }
+
+    /** HELPER METHOD FOR LOADING IMAGES */
+    protected BufferedImage loadImage(String path) throws IOException {
+        return ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream(File.separator + path)));
+    }
+
+    /** CHECKS HEALTH STATUS OF THE ENTITY */
+    protected void checkEntityHealth(Entity entity){
+        if(health <= 0) gamePanel.removeEntity(entity); // if health reaches 0 will remove the entity from the list
+    }
 
     /** ABSTRACT METHODS */
-    protected abstract void setEntity();
-    protected abstract void loadEntityVisuals();
+    public abstract void setEntity();
+    protected abstract void loadEntityVisuals(String type);
     public abstract void draw(Graphics2D g2);
+
 }

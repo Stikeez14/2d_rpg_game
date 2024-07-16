@@ -8,8 +8,8 @@ public class Settings {
     private static int finalTileSize = DEFAULT_TILE_SIZE * scale;
 
     /* Worlds Map SETTINGS */
-    private static final int maxTilesVertically = 200;
-    private static final int maxTilesHorizontally = 200;
+    private static final int maxTilesVertically = 500;
+    private static final int maxTilesHorizontally = 500;
 
     /* get & set methods */
     public static int getMaxTilesVertically() { return maxTilesVertically; }
