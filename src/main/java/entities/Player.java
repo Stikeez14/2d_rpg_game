@@ -9,7 +9,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class Player extends Entity {
 
@@ -166,9 +165,7 @@ public class Player extends Entity {
     private void sprintAndScale(){
         int runSpeed;
 
-        // normal speed is based on scale (odd | even)
-        if(Settings.getScale() % 2 == 0) Speed = Settings.getScale() / 3;
-        else Speed = (Settings.getScale() + 1) / 3;
+        Speed = 1;
         runSpeed = Speed + 1;
 
         long currentTime = System.currentTimeMillis();
@@ -221,7 +218,7 @@ public class Player extends Entity {
         direction = "standing"; // direction initialized with "standing"
 
         long currentTime = System.currentTimeMillis();
-        long attackCooldown = 2000;
+        long attackCooldown = 1000;
 
         /* ATTACK DIRECTIONS */
         if (key.spacePressed && (currentTime - lastAttackTime >= attackCooldown)) {
@@ -254,7 +251,6 @@ public class Player extends Entity {
             }
         } /* MOVEMENT DIRECTIONS */
         else {
-
             if (key.upPressed) {
                 if (key.leftPressed) {
                     direction = "Up&Left";
@@ -286,7 +282,7 @@ public class Player extends Entity {
             if (attackStartTime == 0) attackStartTime = System.currentTimeMillis();
             long elapsedTime = System.currentTimeMillis() - attackStartTime;
 
-            long attackDuration = 1000; // 1 sec
+            long attackDuration = 500; // 0.5 sec
 
             if (elapsedTime > attackDuration) {
                 isAttacking = false; // deactivate flag
@@ -360,38 +356,38 @@ public class Player extends Entity {
         BufferedImage weapon = null;
 
         if(!isAttacking){
-        switch (direction) { // draws player armour based on direction and sprite flag
-            case "Down", "Down&Left", "Down&Right":
-                if (hasHelmet) helmet = walkDownEternalHelmet;
-                if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkDown1EternalChestPlate : walkDown2EternalChestPlate;
-                if (hasLeggings) leggings = (spriteFlag == 1) ? walkDown1EternalLeggings : walkDown2EternalLeggings;
-                if (hasWeapon) weapon = (spriteFlag == 1) ? walkDown1Bat : standingBat;
-                break;
-            case "Up", "Up&Left", "Up&Right":
-                if (hasHelmet) helmet = walkUpEternalHelmet;
-                if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkUp1EternalChestPlate : walkUp2EternalChestPlate;
-                if (hasLeggings) leggings = (spriteFlag == 1) ? walkUp1EternalLeggings : walkUp2EternalLeggings;
-                if (hasWeapon) weapon = (spriteFlag == 1) ? walkUp1Bat : walkUp2Bat;
-                break;
-            case "Left":
-                if (hasHelmet) helmet = walkLeftEternalHelmet;
-                if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkLeft1EternalChestPlate : walkLeft2EternalChestPlate;
-                if (hasLeggings) leggings = (spriteFlag == 1) ? walkLeft1EternalLeggings : walkLeft2EternalLeggings;
-                if (hasWeapon) weapon = (spriteFlag == 1) ? walkLeft1Bat : walkLeft2Bat;
-                break;
-            case "Right":
-                if (hasHelmet) helmet = walkRightEternalHelmet;
-                if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkRight1EternalChestPlate : walkRight2EternalChestPlate;
-                if (hasLeggings) leggings = (spriteFlag == 1) ? walkRight1EternalLeggings : walkRight2EternalLeggings;
-                if (hasWeapon) weapon = (spriteFlag == 1) ? walkRight1Bat : walkRight2Bat;
-                break;
-            case "standing":
-                if (hasHelmet) helmet = standingEternalHelmet;
-                if (hasChestPlate) chestPlate = standingEternalChestPlate;
-                if (hasLeggings) leggings = standingEternalLeggings;
-                if (hasWeapon) weapon = standingBat;
-                break;
-        }}
+            switch (direction) { // draws player armour based on direction and sprite flag
+                case "Down", "Down&Left", "Down&Right":
+                    if (hasHelmet) helmet = walkDownEternalHelmet;
+                    if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkDown1EternalChestPlate : walkDown2EternalChestPlate;
+                    if (hasLeggings) leggings = (spriteFlag == 1) ? walkDown1EternalLeggings : walkDown2EternalLeggings;
+                    if (hasWeapon) weapon = (spriteFlag == 1) ? walkDown1Bat : standingBat;
+                    break;
+                case "Up", "Up&Left", "Up&Right":
+                    if (hasHelmet) helmet = walkUpEternalHelmet;
+                    if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkUp1EternalChestPlate : walkUp2EternalChestPlate;
+                    if (hasLeggings) leggings = (spriteFlag == 1) ? walkUp1EternalLeggings : walkUp2EternalLeggings;
+                    if (hasWeapon) weapon = (spriteFlag == 1) ? walkUp1Bat : walkUp2Bat;
+                    break;
+                case "Left":
+                    if (hasHelmet) helmet = walkLeftEternalHelmet;
+                    if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkLeft1EternalChestPlate : walkLeft2EternalChestPlate;
+                    if (hasLeggings) leggings = (spriteFlag == 1) ? walkLeft1EternalLeggings : walkLeft2EternalLeggings;
+                    if (hasWeapon) weapon = (spriteFlag == 1) ? walkLeft1Bat : walkLeft2Bat;
+                    break;
+                case "Right":
+                    if (hasHelmet) helmet = walkRightEternalHelmet;
+                    if (hasChestPlate) chestPlate = (spriteFlag == 1) ? walkRight1EternalChestPlate : walkRight2EternalChestPlate;
+                    if (hasLeggings) leggings = (spriteFlag == 1) ? walkRight1EternalLeggings : walkRight2EternalLeggings;
+                    if (hasWeapon) weapon = (spriteFlag == 1) ? walkRight1Bat : walkRight2Bat;
+                    break;
+                case "standing":
+                    if (hasHelmet) helmet = standingEternalHelmet;
+                    if (hasChestPlate) chestPlate = standingEternalChestPlate;
+                    if (hasLeggings) leggings = standingEternalLeggings;
+                    if (hasWeapon) weapon = standingBat;
+                    break;
+            }}
 
         if (helmet != null) g2.drawImage(helmet, getEntityScreenX(), getEntityScreenY(), getEntityWidth(), getEntityHeight(), null);
         if (chestPlate != null) g2.drawImage(chestPlate, getEntityScreenX(), getEntityScreenY(), getEntityWidth(), getEntityHeight(), null);

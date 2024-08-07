@@ -102,13 +102,13 @@ public abstract class Entity {
     BufferedImage getCurrentSprite() {
 
         if(!isAttacking){
-        return switch (direction) {
-            case "Down", "Down&Left", "Down&Right" -> (spriteFlag == 1) ? walkDown1 : walkDown2;
-            case "Up", "Up&Left", "Up&Right" -> (spriteFlag == 1) ? walkUp1 : walkUp2;
-            case "Left" -> (spriteFlag == 1) ? walkLeft1 : walkLeft2;
-            case "Right" -> (spriteFlag == 1) ? walkRight1 : walkRight2;
-            default -> standing;
-        };
+            return switch (direction) {
+                case "Down", "Down&Left", "Down&Right" -> (spriteFlag == 1) ? walkDown1 : walkDown2;
+                case "Up", "Up&Left", "Up&Right" -> (spriteFlag == 1) ? walkUp1 : walkUp2;
+                case "Left" -> (spriteFlag == 1) ? walkLeft1 : walkLeft2;
+                case "Right" -> (spriteFlag == 1) ? walkRight1 : walkRight2;
+                default -> standing;
+            };
         }
         else return standing;
     }

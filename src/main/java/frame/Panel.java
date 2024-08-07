@@ -37,6 +37,7 @@ public class Panel extends JPanel implements Runnable {
         this.setDoubleBuffered(true); //better rendering performance
         this.setBackground(Color.BLACK);
 
+        //player = new Player(800, 1500, this,"malePlayer");
         player = new Player(1500, 1500, this,"malePlayer");
         player.setEquipment(false,false,false, true);
 
@@ -46,8 +47,10 @@ public class Panel extends JPanel implements Runnable {
         bandit4 = new Bandit(1600,1700,this,"corruptedBandit", null);
 
         addEntity(player);
-        addEntity(bandit1); addEntity(bandit2);
-        addEntity(bandit3); addEntity(bandit4);
+        addEntity(bandit1);
+        //addEntity(bandit2);
+        //addEntity(bandit3);
+        //addEntity(bandit4);
     }
 
     public void startThread() {

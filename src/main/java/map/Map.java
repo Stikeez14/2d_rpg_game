@@ -213,4 +213,11 @@ public class Map {
     public void setDrawCollisionStatus(boolean status){
         drawCollision = status;
     }
+
+    public int getTileNumberAt(int tileX, int tileY) {
+        if (tileX >= 0 && tileX < mapTileMatrix.length && tileY >= 0 && tileY < mapTileMatrix[0].length) {
+            return mapTileMatrix[tileX][tileY];
+        }
+        return -1;
+    }
 }
